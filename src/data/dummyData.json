@@ -1,0 +1,132 @@
+{
+  "parent": {
+    "id": "5f4c7f9a-b1d1-4e49-90f2-8c08c3e7dbfa",
+    "userId": "0953ec3b-725c-4536-a19e-f158595e2742"
+  },
+  "students": [
+    {
+      "id": "b2f0c53d-1db4-44e7-95c1-79f431ce9014",
+      "userId": "ae34d457-f1e1-4ac5-8db6-abc92b4098c3",
+      "universityId": "UNI-1001",
+      "departmentId": "dep-001",
+      "enrollmentDate": "2023-09-01T00:00:00.000Z",
+      "gpa": 3.75
+    },
+    {
+      "id": "82cc97e4-eed2-45e3-b67d-234c0dc7a9c1",
+      "userId": "9aa76c3f-0e20-4ab0-b871-4d35cc885891",
+      "universityId": "UNI-1002",
+      "departmentId": "dep-002",
+      "enrollmentDate": "2022-09-01T00:00:00.000Z",
+      "gpa": 3.48
+    },
+    {
+      "id": "c72aa4cd-3ee5-41a3-9f6f-0d2676e1bc2c",
+      "userId": "c0d0f67e-45de-47ff-91be-5a8b16d38340",
+      "universityId": "UNI-1003",
+      "departmentId": "dep-003",
+      "enrollmentDate": "2021-09-01T00:00:00.000Z",
+      "gpa": 3.89
+    }
+  ],
+  "parent_links": [
+    {
+      "parentId": "5f4c7f9a-b1d1-4e49-90f2-8c08c3e7dbfa",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014"
+    },
+    {
+      "parentId": "5f4c7f9a-b1d1-4e49-90f2-8c08c3e7dbfa",
+      "studentId": "82cc97e4-eed2-45e3-b67d-234c0dc7a9c1"
+    },
+    {
+      "parentId": "5f4c7f9a-b1d1-4e49-90f2-8c08c3e7dbfa",
+      "studentId": "c72aa4cd-3ee5-41a3-9f6f-0d2676e1bc2c"
+    }
+  ],
+  "fees": [
+    {
+      "id": "fee1",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014",
+      "amount": 320.5,
+      "status": "unpaid",
+      "dueDate": "2025-09-30T00:00:00.000Z",
+      "createdAt": "2025-08-01T00:00:00.000Z",
+      "updatedAt": "2025-08-01T00:00:00.000Z"
+    },
+    {
+      "id": "fee2",
+      "studentId": "82cc97e4-eed2-45e3-b67d-234c0dc7a9c1",
+      "amount": 420.0,
+      "status": "paid",
+      "dueDate": "2025-06-15T00:00:00.000Z",
+      "createdAt": "2025-05-01T00:00:00.000Z",
+      "updatedAt": "2025-06-14T00:00:00.000Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "subm1",
+      "projectId": "proj-101",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014",
+      "submittedAt": "2025-07-30T10:15:00.000Z",
+      "fileUrl": "https://dummyurl.com/assignment1.pdf",
+      "score": 88.5,
+      "feedback": "Excellent work!"
+    },
+    {
+      "id": "subm2",
+      "projectId": "proj-102",
+      "studentId": "c72aa4cd-3ee5-41a3-9f6f-0d2676e1bc2c",
+      "submittedAt": "2025-07-20T14:20:00.000Z",
+      "fileUrl": "https://dummyurl.com/assignment2.pdf",
+      "score": 72.0,
+      "feedback": "Needs improvement."
+    }
+  ],
+  "gpaHistory": [
+    {
+      "id": "gpa1",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014",
+      "gpa": 3.5,
+      "date": "2024-12-31T00:00:00.000Z"
+    },
+    {
+      "id": "gpa2",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014",
+      "gpa": 3.75,
+      "date": "2025-06-30T00:00:00.000Z"
+    }
+  ],
+  "academicSchedules": [
+    {
+      "id": "sched-1",
+      "title": "Math 101 - Lecture",
+      "description": "Calculus introduction",
+      "date": "2025-09-01T09:00:00Z",
+      "time": "09:00 AM",
+      "location": "Room 101",
+      "courseId": "course-1",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014"
+    },
+    {
+      "id": "sched-2",
+      "title": "Physics Midterm Exam",
+      "description": "Chapters 1-5",
+      "date": "2025-10-15T10:00:00Z",
+      "time": "10:00 AM",
+      "location": "Exam Hall A",
+      "courseId": "course-2",
+      "studentId": "82cc97e4-eed2-45e3-b67d-234c0dc7a9c1"
+    },
+    {
+      "id": "sched-3",
+      "title": "Chemistry Lab",
+      "description": "Organic reactions practice",
+      "date": "2025-09-10T13:00:00Z",
+      "time": "01:00 PM",
+      "location": "Lab B2",
+      "courseId": "course-3",
+      "studentId": "b2f0c53d-1db4-44e7-95c1-79f431ce9014"
+    }
+  ]
+}
