@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/ui/navbar";
+import GradientBanner from "./GradientBanner";  // import banner here
 import Providers from "@/components/Providers";
 import Footer from "@/components/ui/Footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <Preloader />
+          <GradientBanner />   {/* put banner here */}
           <Navbar />
           <Toaster />
           {children}

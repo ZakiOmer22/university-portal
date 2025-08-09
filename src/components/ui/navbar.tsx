@@ -103,7 +103,7 @@ export default function Navbar() {
   const firstName = user?.fullName ? user.fullName.split(" ")[0] : "";
 
   return (
-    <nav ref={navRef} className="bg-indigo-900/95 sticky top-0 z-50 shadow-lg w-full" role="navigation" aria-label="Primary">
+    <nav ref={navRef} className="bg-indigo-900/95 sticky top-[55px] z-40 shadow-lg w-full" role="navigation" aria-label="Primary">
       <div className="w-full px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
