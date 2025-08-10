@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { JSX } from "react";
 import {
     FaHome,
     FaBook,
@@ -20,7 +21,21 @@ import {
     FaLifeRing,
 } from "react-icons/fa";
 
-export default function QuickLinks() {
+interface QuickLink {
+    href: string;
+    label: string;
+    icon: JSX.Element;
+    activeBg: string;
+    inactiveBorder: string;
+    inactiveText: string;
+    focusRing: string;
+}
+
+interface QuickLinksProps {
+    compact?: boolean; // Optional prop for compact mode
+}
+
+export default function QuickLinks({ compact }: QuickLinksProps) {
     const pathname = usePathname();
 
     const links = [
@@ -179,12 +194,8 @@ export default function QuickLinks() {
         },
     ];
 
-    return (
-        <nav
-            aria-label="Student dashboard quick links"
-            className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col gap-2 h-full overflow-y-auto"
-            style={{ boxShadow: "none" }} // remove shadow explicitly if any
-        >
+   return (
+        <nav aria-label="Student dashboard quick links" className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
             {links.map(({ href, label, icon, activeBg, inactiveBorder, inactiveText, focusRing }) => {
                 const isActive = pathname === href;
@@ -201,7 +212,7 @@ export default function QuickLinks() {
                         aria-current={isActive ? "page" : undefined}
                     >
                         {icon}
-                        <span>{label}</span>
+                        {!compact && <span>{label}</span>} {/* Show label only if not compact */}
                     </Link>
                 );
             })}

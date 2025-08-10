@@ -1,7 +1,10 @@
+"use client";
+
 import React, { ReactNode } from "react";
 import ProfileHeader from "@/components/parent/ProfileHeader";
 import QuickLinks from "@/components/parent/QuickLinks";
 import DashboardSkeleton from "@/components/parent/DashboardSkeleton";
+import AuthGuard from "@/components/AuthGuard"; // import AuthGuard
 
 interface DashboardLayoutProps {
     user: { fullName: string; role: string; profilePicture?: string } | null;
@@ -11,24 +14,26 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ user, loading, children }: DashboardLayoutProps) {
     return (
-        <div className="p-6 max-w-7xl mx-auto min-h-screen">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Parent Dashboard</h1>
+        <AuthGuard allowedRoles={["parent"]}>
+            <div className="p-6 max-w-7xl mx-auto min-h-screen">
+                <h1 className="text-3xl font-bold text-gray-900 mb-6">Parent Dashboard</h1>
 
-            {loading ? (
-                <DashboardSkeleton />
-            ) : (
-                <>
-                    <ProfileHeader user={user} />
+                {loading ? (
+                    <DashboardSkeleton />
+                ) : (
+                    <>
+                        <ProfileHeader user={user} />
 
-                    <div className="mt-4">
-                        <QuickLinks />
-                    </div>
+                        <div className="mt-4">
+                            <QuickLinks />
+                        </div>
 
-                    <div className="mt-8">
-                        {children /* This is where the page-specific content goes */}
-                    </div>
-                </>
-            )}
-        </div>
+                        <div className="mt-8">
+                            {children /* This is where the page-specific content goes */}
+                        </div>
+                    </>
+                )}
+            </div>
+        </AuthGuard>
     );
 }

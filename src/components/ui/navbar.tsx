@@ -53,7 +53,7 @@ const menuItems = [
   },
 ];
 
-export default function Navbar() {
+export default function Navbar({ bannerOpen }: { bannerOpen: boolean }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<{ fullName: string; role: string; profilePicture?: string } | null>(null);
@@ -102,16 +102,21 @@ export default function Navbar() {
 
   const firstName = user?.fullName ? user.fullName.split(" ")[0] : "";
 
+  const navbarTopClass = bannerOpen ? "top-[60px]" : "top-0";
+
   return (
-    <nav ref={navRef} className="bg-indigo-900/95 sticky top-[55px] z-40 shadow-lg w-full" role="navigation" aria-label="Primary">
+    <nav
+      ref={navRef}
+      className={`bg-indigo-900/95 sticky z-40 shadow-lg w-full ${navbarTopClass}`}
+      role="navigation"
+      aria-label="Primary"
+    >
       <div className="w-full px-6 py-3 flex items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <Image src="/icon.png" alt="University Logo" width={50} height={50} />
           <span className="font-bold text-2xl tracking-wide text-white">University Portal</span>
         </Link>
 
-        {/* Desktop Menu */}
         <ul className="hidden md:flex gap-6 text-sm font-semibold text-white">
           {menuItems.map((item, idx) => (
             <li
@@ -158,7 +163,6 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* User Section */}
         <div className="hidden md:flex items-center gap-6 relative" ref={profileRef}>
           {user ? (
             <>
@@ -236,14 +240,12 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger Button */}
         <button
           className="md:hidden text-white p-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white"
           aria-label="Toggle menu"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
         >
           {mobileMenuOpen ? (
-            // X icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -255,7 +257,6 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            // Hamburger icon
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -270,7 +271,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-indigo-900/95 border-t border-indigo-700">
           <ul className="flex flex-col p-4 space-y-4 text-white text-sm font-semibold">
@@ -297,13 +297,12 @@ export default function Navbar() {
               </li>
             ))}
 
-            {/* Mobile User Section */}
             <li className="border-t border-indigo-700 pt-4">
               {user ? (
                 <div className="space-y-2">
                   <p className="px-3 font-semibold">Hello, {firstName}</p>
                   <Link
-                    href="/profile"
+                    href="/account/profile"
                     className="block py-1 px-3 rounded hover:bg-indigo-800"
                     onClick={() => setMobileMenuOpen(false)}
                   >
