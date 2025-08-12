@@ -20,6 +20,95 @@ async function main() {
     },
   });
 
+  const roles = [
+    {
+      name: "admin",
+      label: "Administrator",
+      colorClass: "bg-red-100 text-red-800 border border-red-300",
+      permissions: [
+        "Manage users",
+        "Access all dashboards",
+        "Approve accounts",
+        "Configure system settings",
+      ],
+    },
+    {
+      name: "teacher",
+      label: "Teacher",
+      colorClass: "bg-blue-100 text-blue-800 border border-blue-300",
+      permissions: [
+        "Manage courses",
+        "Grade students",
+        "View student submissions",
+      ],
+    },
+    {
+      name: "student",
+      label: "Student",
+      colorClass: "bg-green-100 text-green-800 border border-green-300",
+      permissions: ["View courses", "Submit assignments", "Check grades"],
+    },
+    {
+      name: "parent",
+      label: "Parent",
+      colorClass: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+      permissions: ["View student progress", "Communicate with teachers"],
+    },
+    {
+      name: "employee",
+      label: "Employee",
+      colorClass: "bg-purple-100 text-purple-800 border border-purple-300",
+      permissions: ["Manage administrative tasks", "Access HR resources"],
+    },
+    {
+      name: "Finance",
+      label: "Finance",
+      colorClass: "bg-indigo-100 text-indigo-800 border border-indigo-300",
+      permissions: ["Manage budgets", "Process payments", "Generate reports"],
+    },
+    {
+      name: "Registrar",
+      label: "Registrar",
+      colorClass: "bg-pink-100 text-pink-800 border border-pink-300",
+      permissions: [
+        "Manage student records",
+        "Handle registrations",
+        "Verify enrollment",
+      ],
+    },
+    {
+      name: "Examination",
+      label: "Examination",
+      colorClass: "bg-cyan-100 text-cyan-800 border border-cyan-300",
+      permissions: ["Schedule exams", "Manage exam results", "Monitor cheating"],
+    },
+    {
+      name: "HR",
+      label: "Human Resources",
+      colorClass: "bg-teal-100 text-teal-800 border border-teal-300",
+      permissions: ["Manage employee records", "Handle recruitment", "Payroll"],
+    },
+    {
+      name: "Graduated",
+      label: "Graduated",
+      colorClass: "bg-gray-100 text-gray-800 border border-gray-300",
+      permissions: ["Access alumni resources", "Request transcripts"],
+    },
+  ];
+
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { name: role.name },
+      update: {},
+      create: {
+        name: role.name,
+        label: role.label,
+        colorClass: role.colorClass,
+        permissions: role.permissions,
+      },
+    });
+  }
+  console.log("✅ Roles seeded");
   // Create Users
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@example.com" },

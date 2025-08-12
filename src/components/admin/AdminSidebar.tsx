@@ -26,6 +26,7 @@ import {
     Calendar,
     Bell,
     Layers,
+    MessageCircle 
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -85,7 +86,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             items: [
                 { name: "Backup", href: "/dashboard/admin/backup", icon: Database },
                 { name: "System Health", href: "/dashboard/admin/health", icon: Server },
-                { name: "Logout", href: "/logout", icon: LogOut },
+            ],
+        },
+        {
+            title: "Support",
+            items: [
+                { name: "Support Tickets", href: "/dashboard/admin/support-tickets", icon: MessageCircle }, // using lucide-react icon
             ],
         },
     ];
@@ -103,7 +109,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
             <aside
                 className={cn(
-                    "fixed top-0 left-0 h-full bg-gradient-to-b from-blue-900 to-indigo-900 text-white w-64 shadow-lg z-50 transform md:static md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col",
+                    "fixed top-0 left-0 bg-gradient-to-b from-blue-900 to-indigo-900 text-white w-64 shadow-lg z-50 transform md:static md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col",
                     isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
                 )}
             >

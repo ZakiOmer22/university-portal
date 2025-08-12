@@ -177,10 +177,23 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // e.g. 'admin', 'teacher', ...
+  label       String   // Friendly display name
+  colorClass  String   // For UI colors (optional)
+  permissions String[] // Array of permissions or JSON stored as String
+}
+
 enum UserRole {
   admin
   teacher
   student
   parent
   employee
+  Finance
+  Registrar
+  Examination
+  HR
+  Graduated
 }

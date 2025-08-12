@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>University Courses Report</title>
+    <style>
+      body {
+        font-family: serif;
+        margin: 0;
+        color: #1a202c;
+        background: white;
+      }
+      main {
+        padding: 40px 60px;
+        /* removed max-width for full width usage */
+        margin: 0;
+        color: #1a202c;
+        width: 100vw;
+        box-sizing: border-box;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        user-select: none;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .header-left img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+      }
+      .university-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #4c51bf;
+      }
+      .header-right {
+        text-align: right;
+        font-size: 0.9rem;
+        color: #4a5568;
+        max-width: 280px;
+      }
+      .header-right p {
+        margin: 2px 0;
+      }
+      hr {
+        border: none;
+        border-bottom: 1px solid #cbd5e0;
+        margin: 12px 0 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-bottom: 60px;
+      }
+      thead tr {
+        background: #edf2f7;
+      }
+      th,
+      td {
+        border: 1px solid #cbd5e0;
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      tbody tr:nth-child(odd) {
+        background: #fff;
+      }
+      tbody tr:nth-child(even) {
+        background: #f7fafc;
+      }
+      footer {
+        text-align: center;
+        color: #718096;
+        font-size: 0.875rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        user-select: none;
+        position: fixed;
+        bottom: 10px;
+        left: 0;
+        width: 100%;
+        background: transparent;
+      }
+      footer img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          margin: 0;
+        }
+        main {
+          padding: 10px 30px !important;
+          width: 100% !important;
+          margin: 0 !important;
+        }
+        footer {
+          position: fixed;
+          bottom: 10px;
+          left: 0;
+          width: 100%;
+          background: transparent;
+          color: #718096;
+          font-size: 0.75rem;
+        }
+        table,
+        tr,
+        td,
+        th {
+          page-break-inside: avoid !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="header-left">
+          <img src="/logo.png" alt="University Logo" />
+          <div class="university-name">University Portal</div>
+        </div>
+        <div class="header-right">
+          <p>
+            Official transcript-style report showing course details and
+            information.
+          </p>
+          <p>Printed on: <span id="printedDate"></span></p>
+        </div>
+      </header>
+
+      <hr />
+
+      <table>
+        <thead>
+          <tr>
+            <th>Course Title</th>
+            <th>Description</th>
+            <th>Instructor</th>
+            <th>Department</th>
+            <th>Apply Level</th>
+            <th>Uploaded On</th>
+          </tr>
+        </thead>
+        <tbody id="coursesBody"></tbody>
+      </table>
+
+      <footer>
+        <img src="/favicon.ico" alt="eALIF Logo" />
+        <span>Powered by eALIF Team</span>
+      </footer>
+    </main>
+
+    <script>
+      const courses = [
+        {
+          id: "cs101",
+          title: "Introduction to Computer Science",
+          description:
+            "Learn the basics of algorithms, data structures, and programming.",
+          instructorName: "Dr. Alice Johnson",
+          department: "Computer Science",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-08-10T12:00:00Z",
+        },
+        {
+          id: "mba101",
+          title: "Marketing Strategy",
+          description:
+            "Comprehensive introduction to marketing principles and strategies.",
+          instructorName: "Prof. Mark Thompson",
+          department: "Business Administration",
+          applyLevel: "Masters",
+          uploadedAt: "2023-06-15T09:30:00Z",
+        },
+        {
+          id: "cs102",
+          title: "Data Structures and Algorithms",
+          description:
+            "In-depth study of data organization and algorithm design.",
+          instructorName: "Dr. Brian Lee",
+          department: "Computer Science",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-05T11:00:00Z",
+        },
+        {
+          id: "eng201",
+          title: "English Composition",
+          description:
+            "Effective writing and communication skills development.",
+          instructorName: "Ms. Clara Smith",
+          department: "English",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-05-20T14:45:00Z",
+        },
+        {
+          id: "mba102",
+          title: "Financial Accounting",
+          description: "Principles and practices of financial accounting.",
+          instructorName: "Prof. David Wilson",
+          department: "Business Administration",
+          applyLevel: "Masters",
+          uploadedAt: "2023-06-22T10:00:00Z",
+        },
+        {
+          id: "phy101",
+          title: "General Physics",
+          description: "Basic concepts of mechanics, heat, and sound.",
+          instructorName: "Dr. Emily Clark",
+          department: "Physics",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-18T09:15:00Z",
+        },
+        {
+          id: "cs201",
+          title: "Operating Systems",
+          description: "Design and implementation of operating systems.",
+          instructorName: "Dr. Frank Miller",
+          department: "Computer Science",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-08-01T13:30:00Z",
+        },
+        {
+          id: "art101",
+          title: "Introduction to Graphic Design",
+          description: "Fundamentals of graphic design principles and tools.",
+          instructorName: "Ms. Grace Harris",
+          department: "Graphic Design",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-05-15T08:45:00Z",
+        },
+        {
+          id: "bio101",
+          title: "Biology Basics",
+          description: "Introduction to biological systems and organisms.",
+          instructorName: "Dr. Henry Adams",
+          department: "Biology",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-12T15:00:00Z",
+        },
+        {
+          id: "mba103",
+          title: "Organizational Behavior",
+          description: "Study of human behavior in organizational settings.",
+          instructorName: "Prof. Irene Taylor",
+          department: "Business Administration",
+          applyLevel: "Masters",
+          uploadedAt: "2023-06-30T11:30:00Z",
+        },
+        {
+          id: "chem101",
+          title: "General Chemistry",
+          description: "Introduction to chemical principles and reactions.",
+          instructorName: "Dr. Jack Martin",
+          department: "Chemistry",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-08-05T10:20:00Z",
+        },
+        {
+          id: "cs301",
+          title: "Machine Learning",
+          description: "Fundamentals and applications of machine learning.",
+          instructorName: "Dr. Karen Young",
+          department: "Computer Science",
+          applyLevel: "Graduate",
+          uploadedAt: "2023-07-28T09:50:00Z",
+        },
+        {
+          id: "eng202",
+          title: "Advanced Literature",
+          description: "Critical analysis of modern literary works.",
+          instructorName: "Ms. Laura Green",
+          department: "English",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-05-25T14:00:00Z",
+        },
+        {
+          id: "cs401",
+          title: "Cloud Computing",
+          description: "Architectures and services in cloud computing.",
+          instructorName: "Dr. Michael Scott",
+          department: "Computer Science",
+          applyLevel: "Graduate",
+          uploadedAt: "2023-08-02T12:45:00Z",
+        },
+        {
+          id: "math101",
+          title: "Calculus I",
+          description: "Differential and integral calculus fundamentals.",
+          instructorName: "Dr. Nancy King",
+          department: "Mathematics",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-06-10T13:10:00Z",
+        },
+        {
+          id: "phy201",
+          title: "Modern Physics",
+          description: "Exploration of relativity and quantum mechanics.",
+          instructorName: "Dr. Oliver Perez",
+          department: "Physics",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-22T10:55:00Z",
+        },
+        {
+          id: "mba104",
+          title: "Business Ethics",
+          description: "Ethical decision-making in business environments.",
+          instructorName: "Prof. Patricia Lopez",
+          department: "Business Administration",
+          applyLevel: "Masters",
+          uploadedAt: "2023-06-18T11:40:00Z",
+        },
+        {
+          id: "cs105",
+          title: "Web Development",
+          description:
+            "Building modern web applications with React and Node.js.",
+          instructorName: "Mr. Quentin Wright",
+          department: "Computer Science",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-30T09:05:00Z",
+        },
+        {
+          id: "bio201",
+          title: "Genetics",
+          description: "Principles of heredity and genetic technology.",
+          instructorName: "Dr. Rachel Moore",
+          department: "Biology",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-07-14T14:30:00Z",
+        },
+        {
+          id: "cs202",
+          title: "Networks and Security",
+          description: "Introduction to computer networks and cybersecurity.",
+          instructorName: "Dr. Steve Turner",
+          department: "Computer Science",
+          applyLevel: "Undergraduate",
+          uploadedAt: "2023-08-08T15:15:00Z",
+        },
+      ];
+
+      function formatDate(dateString) {
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+      }
+
+      const tbody = document.getElementById("coursesBody");
+      courses.forEach((course, index) => {
+        const tr = document.createElement("tr");
+        if (index % 2 === 1) tr.style.backgroundColor = "#f7fafc";
+
+        tr.innerHTML = `
+          <td>${course.title}</td>
+          <td>${course.description}</td>
+          <td>${course.instructorName}</td>
+          <td>${course.department}</td>
+          <td>${course.applyLevel}</td>
+          <td>${formatDate(course.uploadedAt)}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("printedDate").textContent =
+        new Date().toLocaleDateString();
+    </script>
+  </body>
+</html>

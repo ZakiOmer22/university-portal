@@ -9,7 +9,6 @@ import { FiFileText, FiMessageCircle, FiEye } from "react-icons/fi";
 import AttendanceTrendsChart from "@/components/parent/AttendanceChart";
 import GpaTrendsChart from "@/components/parent/GpaTrendsChart";
 import UpcomingEvents from "@/components/parent/UpcomingEvents";
-import HomeworkSummary from "@/components/parent/HomeworkSummary";
 import PaymentHistory from "@/components/parent/PaymentHistory";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
@@ -31,7 +30,6 @@ interface Notification {
   date: Date;
 }
 
-// Add the Event interface with the correct union type for `type`
 interface Event {
   id: string;
   title: string;
@@ -54,7 +52,7 @@ export default function ParentDashboard() {
     { semester: "Fall 2025", "Ayaan Omer": 3.9, "Layla Omer": 3.7 },
   ];
 
-  const childrenNames = ["Ayaan Omer", "Layla Omer"];
+  const childrenNames = children.map((c) => c.name);
 
   const attendanceData = [
     { semester: "Fall 2024", "Ayaan Omer": 95, "Layla Omer": 88 },
@@ -62,7 +60,6 @@ export default function ParentDashboard() {
     { semester: "Fall 2025", "Ayaan Omer": 97, "Layla Omer": 91 },
   ];
 
-  // Explicitly typed events array using the Event interface
   const events: Event[] = [
     {
       id: "e1",
@@ -92,7 +89,7 @@ export default function ParentDashboard() {
     date: Date;
     amount: number;
     method: string;
-    status: "Completed" | "Pending" | "Failed";  // exact literal union here
+    status: "Completed" | "Pending" | "Failed";
   }
 
   const payments: Payment[] = [
@@ -101,7 +98,7 @@ export default function ParentDashboard() {
       date: new Date("2025-07-15"),
       amount: 250.0,
       method: "Credit Card",
-      status: "Completed", // exactly one of the three strings
+      status: "Completed",
     },
     {
       id: "p2",
@@ -119,10 +116,15 @@ export default function ParentDashboard() {
     },
   ];
 
-
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) setUser(JSON.parse(storedUser));
+      else setUser(null);
+    } catch (err) {
+      setUser(null);
+      console.error("Error parsing user data from localStorage", err);
+    }
 
     // Simulate API fetch delay
     setTimeout(() => {
@@ -204,6 +206,8 @@ export default function ParentDashboard() {
       )}
       {loading ? (
         <DashboardSkeleton />
+      ) : children.length === 0 ? (
+        <p className="text-center text-gray-700 mt-20 text-xl">No children data found.</p>
       ) : (
         <>
           <ProfileHeader user={user} />

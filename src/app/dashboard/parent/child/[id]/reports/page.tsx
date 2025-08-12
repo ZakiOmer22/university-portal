@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 const ReportPreview = dynamic(() => import("@/components/pdf/ReportPreview"), { ssr: false });
@@ -8,62 +8,141 @@ const ReportPreview = dynamic(() => import("@/components/pdf/ReportPreview"), { 
 const dummyChildren = [
   {
     id: "1",
-    fullName: "Amina Mohamed",
+    fullName: "Ayaan Omer",
+    profilePicture: "/images/ayaan.jpg",
+    role: "Student",
     reports: [
       {
-        id: "rpt1",
-        type: "Exam Report",
+        id: "r1",
         title: "Midterm Exam Report",
+        type: "Exam Report",
         date: "2025-04-15",
         status: "Available",
-        downloadLink: "/reports/amina-midterm-2025.pdf",
-        description: "Detailed analysis of midterm exams including grades and statistics.",
+        description: "Detailed performance analysis of Midterm exams.",
+        downloadLink: "/reports/ayaan-midterm.pdf",
       },
       {
-        id: "rpt2",
+        id: "r2",
+        title: "Attendance Report Q1",
         type: "Attendance Report",
-        title: "Attendance Summary",
-        date: "2025-06-01",
+        date: "2025-03-31",
         status: "Available",
-        downloadLink: "/reports/amina-attendance-2025.pdf",
-        description: "Summary of attendance records for the semester.",
+        description: "Attendance summary for the first quarter.",
+        downloadLink: "/reports/ayaan-attendance-q1.pdf",
       },
       {
-        id: "rpt3",
+        id: "r3",
+        title: "Behavioral Assessment",
         type: "Behavior Report",
-        title: "Behavior Evaluation",
-        date: "2025-06-15",
-        status: "Pending",
-        downloadLink: null,
-        description: "Behavioral report will be available after teacher review.",
+        date: "2025-05-01",
+        status: "Unavailable",
+        description:
+          "This report contains insights on behavioral performance and participation.",
+        downloadLink: "",
+      },
+      {
+        id: "r4",
+        title: "Transcript Spring 2024",
+        type: "Transcript",
+        date: "2024-06-15",
+        status: "Available",
+        description: "Official transcript for Spring semester 2024.",
+        downloadLink: "/reports/ayaan-transcript-spring-2024.pdf",
       },
     ],
   },
   {
     id: "2",
-    fullName: "Mohamed Abdi",
+    fullName: "Layla Omer",
+    profilePicture: "/images/layla.jpg",
+    role: "Student",
     reports: [
       {
-        id: "rpt4",
-        type: "Exam Report",
+        id: "r5",
         title: "Final Exam Report",
-        date: "2025-05-30",
+        type: "Exam Report",
+        date: "2025-07-20",
         status: "Available",
-        downloadLink: "/reports/mohamed-final-2025.pdf",
-        description: "Final exams report with detailed grading breakdown.",
+        description: "Comprehensive results of the final exams.",
+        downloadLink: "/reports/layla-final-exam.pdf",
       },
       {
-        id: "rpt5",
-        type: "Transcript",
-        title: "Official Transcript",
-        date: "2025-06-20",
+        id: "r6",
+        title: "Attendance Report Q2",
+        type: "Attendance Report",
+        date: "2025-06-30",
+        status: "Unavailable",
+        description: "Summary of attendance in the second quarter.",
+        downloadLink: "",
+      },
+      {
+        id: "r7",
+        title: "Behavioral Assessment",
+        type: "Behavior Report",
+        date: "2025-07-10",
         status: "Available",
-        downloadLink: "/reports/mohamed-transcript-2025.pdf",
-        description: "Official academic transcript for the current year.",
+        description:
+          "Evaluation of behavioral trends and classroom participation.",
+        downloadLink: "/reports/layla-behavioral.pdf",
+      },
+      {
+        id: "r8",
+        title: "Transcript Fall 2024",
+        type: "Transcript",
+        date: "2024-12-15",
+        status: "Available",
+        description: "Official transcript for Fall semester 2024.",
+        downloadLink: "/reports/layla-transcript-fall-2024.pdf",
+      },
+    ],
+  },
+  {
+    id: "3",
+    fullName: "Hassan Ali",
+    profilePicture: "/images/hassan.jpg",
+    role: "Student",
+    reports: [
+      {
+        id: "r9",
+        title: "Quarterly Exam Report",
+        type: "Exam Report",
+        date: "2025-05-15",
+        status: "Unavailable",
+        description: "Detailed quarterly exam results and analysis.",
+        downloadLink: "",
+      },
+      {
+        id: "r10",
+        title: "Attendance Report Q3",
+        type: "Attendance Report",
+        date: "2025-09-30",
+        status: "Available",
+        description: "Attendance report for the third quarter.",
+        downloadLink: "/reports/hassan-attendance-q3.pdf",
+      },
+      {
+        id: "r11",
+        title: "Behavioral Assessment",
+        type: "Behavior Report",
+        date: "2025-08-01",
+        status: "Available",
+        description:
+          "Summary of behavioral observations and recommendations.",
+        downloadLink: "/reports/hassan-behavioral.pdf",
+      },
+      {
+        id: "r12",
+        title: "Transcript Spring 2025",
+        type: "Transcript",
+        date: "2025-06-15",
+        status: "Available",
+        description: "Official transcript for Spring semester 2025.",
+        downloadLink: "/reports/hassan-transcript-spring-2025.pdf",
       },
     ],
   },
 ];
+
 
 const reportTypes = [
   "All",
@@ -74,25 +153,23 @@ const reportTypes = [
 ];
 
 export default function ReportsPage() {
-  // States
-  const [selectedChildId, setSelectedChildId] = useState(dummyChildren[0].id);
+  const [selectedChildId, setSelectedChildId] = useState(dummyChildren[0]?.id ?? "");
   const [selectedReportType, setSelectedReportType] = useState("All");
-  const [selectedReportId, setSelectedReportId] = useState(dummyChildren[0].reports[0].id);
+  const [selectedReportId, setSelectedReportId] = useState(dummyChildren[0]?.reports[0]?.id ?? "");
   const [showPreview, setShowPreview] = useState(false);
 
-  const selectedChild = useMemo(() => dummyChildren.find((c) => c.id === selectedChildId) ?? null, [
-    selectedChildId,
-  ]);
+  const selectedChild = useMemo(
+    () => dummyChildren.find((c) => c.id === selectedChildId) ?? null,
+    [selectedChildId]
+  );
 
-  // Filter reports by selected type or show all
   const filteredReports = useMemo(() => {
     if (!selectedChild) return [];
     if (selectedReportType === "All") return selectedChild.reports;
     return selectedChild.reports.filter((r) => r.type === selectedReportType);
   }, [selectedChild, selectedReportType]);
 
-  // Keep selected reportId valid when filtered reports change
-  React.useEffect(() => {
+  useEffect(() => {
     if (!filteredReports.length) {
       setSelectedReportId("");
       return;
@@ -107,7 +184,6 @@ export default function ReportsPage() {
     return selectedChild.reports.find((r) => r.id === selectedReportId) ?? null;
   }, [selectedChild, selectedReportId]);
 
-  // Handlers
   const onChildChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newChildId = e.target.value;
     setSelectedChildId(newChildId);
@@ -141,7 +217,10 @@ export default function ReportsPage() {
 
       {/* Select Child */}
       <section className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-        <label htmlFor="childSelect" className="font-semibold text-gray-700 text-lg w-36">
+        <label
+          htmlFor="childSelect"
+          className="font-semibold text-gray-700 text-lg w-36"
+        >
           Select Child:
         </label>
         <select
@@ -161,7 +240,10 @@ export default function ReportsPage() {
 
       {/* Select Report Type */}
       <section className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-        <label htmlFor="reportTypeSelect" className="font-semibold text-gray-700 text-lg w-36">
+        <label
+          htmlFor="reportTypeSelect"
+          className="font-semibold text-gray-700 text-lg w-36"
+        >
           Select Report Type:
         </label>
         <select
@@ -181,7 +263,10 @@ export default function ReportsPage() {
 
       {/* Select Report */}
       <section className="mb-10 flex flex-col md:flex-row md:items-center gap-4">
-        <label htmlFor="reportSelect" className="font-semibold text-gray-700 text-lg w-36">
+        <label
+          htmlFor="reportSelect"
+          className="font-semibold text-gray-700 text-lg w-36"
+        >
           Select Report:
         </label>
         <select
@@ -194,7 +279,11 @@ export default function ReportsPage() {
         >
           {filteredReports.length > 0 ? (
             filteredReports.map((report) => (
-              <option key={report.id} value={report.id} disabled={report.status !== "Available"}>
+              <option
+                key={report.id}
+                value={report.id}
+                disabled={report.status !== "Available"}
+              >
                 {report.title} {report.status !== "Available" ? "(Unavailable)" : ""}
               </option>
             ))
@@ -207,7 +296,7 @@ export default function ReportsPage() {
       {/* Report Card */}
       {selectedChild && selectedReport && (
         <section className="border border-indigo-300 rounded-lg p-6 bg-indigo-50 mb-8 shadow-sm">
-          <h2 className="text-3xl font-bold text-indigo-900 mb-2">
+          <h2 className="text-3xl font-bold text-indigo-900 mb-2 truncate">
             {selectedChild.fullName} — {selectedReport.title}
           </h2>
           <p className="text-gray-700 mb-1">
@@ -222,20 +311,32 @@ export default function ReportsPage() {
               {selectedReport.status}
             </span>
           </p>
-          <p className="text-gray-800">{selectedReport.description}</p>
+          <p className="text-gray-800 whitespace-pre-line">{selectedReport.description}</p>
 
-          <div className="mt-6 flex gap-4">
+          <div className="mt-6 flex gap-4 flex-wrap">
             <button
               onClick={openPreview}
               disabled={selectedReport.status !== "Available"}
               className={`px-6 py-2 rounded-md font-semibold transition ${selectedReport.status === "Available"
-                  ? "bg-indigo-700 text-white hover:bg-indigo-800"
-                  : "bg-indigo-300 text-indigo-600 cursor-not-allowed"
+                ? "bg-indigo-700 text-white hover:bg-indigo-800"
+                : "bg-indigo-300 text-indigo-600 cursor-not-allowed"
                 }`}
               aria-disabled={selectedReport.status !== "Available"}
             >
               Preview Report
             </button>
+
+            {selectedReport.status === "Available" && selectedReport.downloadLink && (
+              <a
+                href={selectedReport.downloadLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-2 rounded-md font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                aria-label={`Download ${selectedReport.title}`}
+              >
+                Download Report
+              </a>
+            )}
           </div>
         </section>
       )}
@@ -254,7 +355,7 @@ export default function ReportsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <header className="flex justify-between items-center border-b border-indigo-200 p-5">
-              <h3 id="previewTitle" className="text-xl font-bold text-indigo-900">
+              <h3 id="previewTitle" className="text-xl font-bold text-indigo-900 truncate">
                 {selectedChild.fullName} — {selectedReport.title} Preview
               </h3>
               <button

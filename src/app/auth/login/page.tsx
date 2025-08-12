@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already logged in (and activated)
+  // Redirect if already logged in
   useEffect(() => {
     try {
       const userRaw = localStorage.getItem("user");
@@ -25,7 +25,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      // Fail silently, no user or bad JSON
+      // Ignore invalid localStorage data
     }
   }, [router]);
 
@@ -54,26 +54,18 @@ export default function LoginPage() {
         return;
       }
 
+      // Store the user in localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       if (!data.user?.activated) {
-        toast.error(
-          "Your account is not activated yet. Please activate your account.",
-          { duration: 4000 }
-        );
-        // Save user anyway to allow access to activation page if needed
-        localStorage.setItem("user", JSON.stringify(data.user));
+        toast.error("Your account is not activated yet. Please activate your account.", { duration: 4000 });
         router.push("/auth/activation-pending");
         return;
       }
 
-      // Success: save user and token (if any) to localStorage to remember login
-      localStorage.setItem("user", JSON.stringify(data.user));
-      if (data.token) localStorage.setItem("token", data.token);
+      toast.success(`Welcome back, ${data.user.fullName || data.user.email}!`, { duration: 2000 });
+      router.push("/dashboard");
 
-      toast.success(`Welcome back, ${data.user.fullName || data.user.email}!`, {
-        duration: 2000,
-      });
-
-      setTimeout(() => router.push("/dashboard"), 1200);
     } catch (err) {
       setLoading(false);
       toast.error("Something went wrong. Please try again later.", { duration: 2500 });
@@ -87,7 +79,7 @@ export default function LoginPage() {
         <p className="text-center text-gray-600 mb-6">Login to continue to your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
+          {/* Email */}
           <div className="flex items-center gap-3 border rounded-lg p-3 focus-within:ring-2 focus-within:ring-indigo-500">
             <FiMail className="text-gray-500 text-xl" />
             <input
@@ -97,11 +89,10 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="flex-1 outline-none text-gray-700"
               required
-              autoComplete="username"
             />
           </div>
 
-          {/* Password Input */}
+          {/* Password */}
           <div className="flex items-center gap-3 border rounded-lg p-3 focus-within:ring-2 focus-within:ring-indigo-500 relative">
             <FiLock className="text-gray-500 text-xl" />
             <input
@@ -111,20 +102,18 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="flex-1 outline-none text-gray-700"
               required
-              autoComplete="current-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 text-gray-500 hover:text-gray-700"
               tabIndex={-1}
-              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -141,13 +130,10 @@ export default function LoginPage() {
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        {/* Register Link */}
+        {/* Register */}
         <p className="text-center text-sm text-gray-600">
           Don’t have an account?{" "}
-          <a
-            href="/auth/register"
-            className="text-indigo-600 hover:underline font-medium"
-          >
+          <a href="/auth/register" className="text-indigo-600 hover:underline font-medium">
             Register here
           </a>
         </p>
