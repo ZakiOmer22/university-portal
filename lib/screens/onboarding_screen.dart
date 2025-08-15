@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:university_portal/screens/home_screen.dart';
+import 'package:university_portal/features/auth/widgets/university_picker_screen.dart';
+import 'package:university_portal/screens/student/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -44,18 +45,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
-                children: [
-                  Image.asset('assets/images/icon.png', width: 50, height: 50),
-                  const SizedBox(height: 8),
-                  // Text(
-                  //   "University Portal",
-                  //   style: TextStyle(
-                  //     fontSize: 16,
-                  //     fontWeight: FontWeight.w600,
-                  //     color: Colors.grey[800],
-                  //   ),
-                  // ),
-                ],
+                // children: [
+                //   Image.asset('assets/images/icon.png', width: 50, height: 50),
+                //   const SizedBox(height: 8),
+                //   // Text(
+                //   //   "University Portal",
+                //   //   style: TextStyle(
+                //   //     fontSize: 16,
+                //   //     fontWeight: FontWeight.w600,
+                //   //     color: Colors.grey[800],
+                //   //   ),
+                //   // ),
+                // ],
               ),
             ),
 
@@ -116,7 +117,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => const HomeShell()),
+                        MaterialPageRoute(
+                          builder: (_) => const UniversityPickerScreen(),
+                        ),
                       );
                     },
                     child: const Text("Skip"),
@@ -139,7 +142,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       if (currentIndex == pages.length - 1) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const HomeShell()),
+                          MaterialPageRoute(
+                            builder: (_) => const UniversityPickerScreen(),
+                          ),
                         );
                       } else {
                         _pageController.nextPage(
@@ -161,18 +166,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.only(bottom: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/icon.png', width: 50, height: 50),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Powered by eALIF Team",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ],
+                // children: [
+                //   Image.asset('assets/images/icon.png', width: 50, height: 50),
+                //   const SizedBox(height: 8),
+                //   Text(
+                //     "Powered by eALIF Team",
+                //     style: TextStyle(
+                //       fontSize: 14,
+                //       fontWeight: FontWeight.w600,
+                //       color: Colors.grey[800],
+                //     ),
+                //   ),
+                // ],
               ),
             ),
           ],
