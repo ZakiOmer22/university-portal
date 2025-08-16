@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:university_portal/widgets/CustomAppBar.dart';
+import 'package:university_portal/widgets/CustomBottomNav.dart';
+import 'package:university_portal/widgets/CustomDrawer.dart';
+import 'package:university_portal/widgets/messages_page.dart';
+import 'package:university_portal/widgets/more_page.dart';
+import 'package:university_portal/widgets/profile_page.dart';
 
 class CoursesPage extends StatefulWidget {
   const CoursesPage({super.key});
@@ -8,9 +16,10 @@ class CoursesPage extends StatefulWidget {
 }
 
 class _CoursesPageState extends State<CoursesPage> {
-  int _currentIndex = 0;
+  int _currentIndex = 1; // default to Courses tab if needed
+  bool _isLoading = true;
 
-  // Actual Semester Courses
+  // Semester Courses
   final List<Map<String, String>> actualCourses = const [
     {
       "title": "Mathematics 101",
@@ -39,36 +48,8 @@ class _CoursesPageState extends State<CoursesPage> {
       "code": "CHEM101",
       "avatarUrl": "https://i.pravatar.cc/150?img=3",
     },
-    {
-      "title": "Computer Science 101",
-      "instructor": "Prof. Leyla",
-      "status": "Upcoming",
-      "semester": "Fall 2025",
-      "mode": "Offline",
-      "code": "CS101",
-      "avatarUrl": "https://i.pravatar.cc/150?img=4",
-    },
-    {
-      "title": "English Literature",
-      "instructor": "Dr. Omar",
-      "status": "Ongoing",
-      "semester": "Fall 2025",
-      "mode": "Online",
-      "code": "ENG101",
-      "avatarUrl": "https://i.pravatar.cc/150?img=5",
-    },
-    {
-      "title": "Economics 101",
-      "instructor": "Prof. Fatima",
-      "status": "Upcoming",
-      "semester": "Fall 2025",
-      "mode": "Offline",
-      "code": "ECON101",
-      "avatarUrl": "https://i.pravatar.cc/150?img=6",
-    },
   ];
 
-  // Retaken Courses (example: placeholder if none)
   final List<Map<String, String>> retakenCourses = const [
     {
       "title": "History 101",
@@ -80,6 +61,16 @@ class _CoursesPageState extends State<CoursesPage> {
       "avatarUrl": "https://i.pravatar.cc/150?img=3",
     },
   ];
+
+  final List<Widget> _pages = const [MessagesPage(), ProfilePage(), MorePage()];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
+  }
 
   void _onAvatarMenu(String value) {
     switch (value) {
@@ -124,32 +115,30 @@ class _CoursesPageState extends State<CoursesPage> {
   void _showCourseDetails(Map<String, String> course) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(course["title"]!),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(course["avatarUrl"]!),
-                radius: 30,
-              ),
-              const SizedBox(height: 12),
-              _detailRow("Instructor", course["instructor"]!),
-              _detailRow("Status", course["status"]!),
-              _detailRow("Semester", course["semester"]!),
-              _detailRow("Mode", course["mode"]!),
-              _detailRow("Course Code", course["code"]!),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
+      builder: (_) => AlertDialog(
+        title: Text(course["title"]!),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage(course["avatarUrl"]!),
+              radius: 30,
             ),
+            const SizedBox(height: 12),
+            _detailRow("Instructor", course["instructor"]!),
+            _detailRow("Status", course["status"]!),
+            _detailRow("Semester", course["semester"]!),
+            _detailRow("Mode", course["mode"]!),
+            _detailRow("Course Code", course["code"]!),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -171,276 +160,76 @@ class _CoursesPageState extends State<CoursesPage> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Student Dashboard",
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: _onAvatarMenu,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'profile', child: Text('Profile')),
-              PopupMenuItem(value: 'dashboard', child: Text('Dashboard')),
-              PopupMenuItem(value: 'logout', child: Text('Log out')),
-            ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundImage: const AssetImage('assets/images/avatar.png'),
-                backgroundColor: cs.primaryContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: "Courses", onAvatarMenu: _onAvatarMenu),
+      drawer: CustomDrawer(contextRef: context),
 
-      drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [cs.primary, cs.primaryContainer],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: () async {
+                setState(() => _isLoading = true);
+                await Future.delayed(const Duration(seconds: 1));
+                if (mounted) setState(() => _isLoading = false);
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Current Semester Courses",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 32,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "John Doe",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "University of Hargeisa",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white70,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "Student • ID: 2025001",
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  children: [
-                    _drawerItem(
-                      Icons.dashboard_rounded,
-                      "Dashboard",
-                      '/students/home',
-                    ),
-                    _drawerItem(
-                      Icons.book_rounded,
-                      "Courses",
-                      '/students/courses',
-                    ),
-                    _drawerItem(
-                      Icons.replay_circle_filled_rounded,
-                      "Course Retake",
-                      '/students/course-retake',
-                    ),
-                    _drawerItem(
-                      Icons.assignment_turned_in_rounded,
-                      "Attendance",
-                      '/students/attendance',
-                    ),
-                    _drawerItem(
-                      Icons.payments_rounded,
-                      "Finance",
-                      '/students/finance',
-                    ),
-                    _drawerItem(
-                      Icons.calendar_month_rounded,
-                      "Academic Calendar",
-                      '/students/schedule',
-                    ),
-                    _drawerItem(
-                      Icons.grade_rounded,
-                      "Grades & Transcripts",
-                      '/students/grades',
-                    ),
-                    _drawerItem(
-                      Icons.event_available_rounded,
-                      "Exam Schedules",
-                      '/students/exam-report',
-                    ),
-                    _drawerItem(
-                      Icons.groups_rounded,
-                      "Community",
-                      '/students/announcements',
-                    ),
-                    _drawerItem(
-                      Icons.help_rounded,
-                      "Help & Support",
-                      '/students/support',
-                    ),
-                    _drawerItem(
-                      Icons.settings_rounded,
-                      "Settings",
-                      '/students/settings',
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/icon.png',
-                      width: 18,
-                      height: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Powered by eALIF Team",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Header
-          Row(
-            children: const [
-              Icon(Icons.menu_book_rounded, size: 28),
-              SizedBox(width: 8),
-              Text(
-                "Courses",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Here are all your enrolled courses.",
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 16),
-          ),
-          const SizedBox(height: 24),
-
-          // Actual Semester Courses
-          const Text(
-            "Current Semester Courses",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          ...actualCourses.map((course) {
-            return GestureDetector(
-              onTap: () => _showCourseDetails(course),
-              child: _courseCard(course, cs),
-            );
-          }).toList(),
-
-          const SizedBox(height: 24),
-          const Text(
-            "Retaken Courses",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-          retakenCourses.isEmpty
-              ? Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(child: Text("No retaken courses found.")),
-                )
-              : Column(
-                  children: retakenCourses.map((course) {
-                    return GestureDetector(
+                  const SizedBox(height: 12),
+                  ...actualCourses.map(
+                    (course) => GestureDetector(
                       onTap: () => _showCourseDetails(course),
                       child: _courseCard(course, cs),
-                    );
-                  }).toList(),
-                ),
-        ],
-      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Retaken Courses",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  retakenCourses.isEmpty
+                      ? Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Text("No retaken courses found."),
+                          ),
+                        )
+                      : Column(
+                          children: retakenCourses
+                              .map(
+                                (course) => GestureDetector(
+                                  onTap: () => _showCourseDetails(course),
+                                  child: _courseCard(course, cs),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                ],
+              ),
+            ),
 
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
-        selectedItemColor: cs.primary,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+          // switch pages (for now, just open the sample page)
+          if (index > 0 && index - 1 < _pages.length) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => _pages[index - 1]),
+            );
+          }
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mail_rounded),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.more_horiz_rounded),
-            label: 'More',
-          ),
-        ],
       ),
-    );
-  }
-
-  ListTile _drawerItem(IconData icon, String label, String route) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey.shade800),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      onTap: () => Navigator.pushNamed(context, route),
     );
   }
 

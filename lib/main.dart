@@ -55,7 +55,8 @@ class UoHApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: '/splash',
+      // Always start with splash
+      home: const SplashScreen(),
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/notifications': (context) => const NotificationsPage(),
@@ -66,23 +67,13 @@ class UoHApp extends StatelessWidget {
         // ? ---------------- STUDENT ROUTES ----------------
         '/students/home': (context) => const HomeShell(),
         '/students/courses': (context) => const CoursesPage(),
-        // '/students/course-registration': (context) =>
-        //     const CourseRegistrationPage(),
         '/students/course-retake': (context) => const CourseRetakePage(),
         '/students/schedule': (context) => const ScheduleScreen(),
         '/students/settings': (context) => const SettingsPage(),
-        // '/students/messages': (context) => const MessagesPage(),
-        // '/students/assignments': (context) => const AssignmentsPage(),
         '/students/grades': (context) => const GradesScreen(),
-        // '/students/analytics': (context) => const ProgressAnalyticsPage(),
         '/students/support': (context) => const HelpSupportPage(),
-        // '/students/profile': (context) => const StudentProfilePage(),
-        // '/students/transcript': (context) => const TranscriptPage(),
         '/students/exam-report': (context) => const ExamScheduleScreen(),
-        // '/students/fees': (context) => const FeesPaymentsPage(),
-        // '/students/library': (context) => const LibraryPage(),
         '/students/announcements': (context) => const CommunityPage(),
-        // '/students/career': (context) => const CareerServicesPage(),
         '/students/attendance': (context) => const AttendancePage(),
         '/students/finance': (context) => const FinanceScreen(),
       },

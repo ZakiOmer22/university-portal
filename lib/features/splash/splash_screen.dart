@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:university_portal/screens/onboarding_screen.dart';
 import 'package:university_portal/widgets/footer.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:university_portal/features/auth/widgets/university_picker_screen.dart';
+import 'package:university_portal/screens/student/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,10 +35,14 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.repeat(reverse: true);
 
-    // Progress animation for 60 seconds
-    const totalDuration = 30; // seconds
+    // Start splash logic
+    _startSplashSequence();
+  }
+
+  Future<void> _startSplashSequence() async {
+    const totalDuration = 60; // seconds to show splash
     int elapsed = 0;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       setState(() {
         elapsed++;
         _progress = elapsed / totalDuration;
@@ -44,10 +51,28 @@ class _SplashScreenState extends State<SplashScreen>
       if (elapsed >= totalDuration) {
         timer.cancel();
         if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+
+        // Read stored preferences
+        final prefs = await SharedPreferences.getInstance();
+        final bool onboardingSeen = prefs.getBool('onboarding_seen') ?? false;
+        final bool loggedIn = prefs.getBool('logged_in') ?? false;
+
+        if (loggedIn) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeShell()),
+          );
+        } else if (onboardingSeen) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const UniversityPickerScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
       }
     });
   }
@@ -96,7 +121,6 @@ class _SplashScreenState extends State<SplashScreen>
               style: TextStyle(fontSize: 18, color: Colors.white70),
             ),
             const SizedBox(height: 20),
-            // Continuous circular progress
             const CircularProgressIndicator(
               strokeWidth: 6,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

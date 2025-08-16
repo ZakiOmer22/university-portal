@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:university_portal/widgets/CustomAppBar.dart';
+import 'package:university_portal/widgets/CustomDrawer.dart';
+import 'package:university_portal/widgets/CustomBottomNav.dart';
+import 'package:university_portal/widgets/messages_page.dart';
+import 'package:university_portal/widgets/profile_page.dart';
+import 'package:university_portal/widgets/more_page.dart';
 
 class GradesScreen extends StatefulWidget {
   const GradesScreen({super.key});
@@ -9,9 +15,9 @@ class GradesScreen extends StatefulWidget {
   State<GradesScreen> createState() => _GradesScreenState();
 }
 
-class _GradesScreenState extends State<GradesScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _GradesScreenState extends State<GradesScreen> {
+  bool _isLoading = true;
+  int _currentIndex = 0;
   String selectedSemester = 'Fall 2025';
 
   final List<String> semesters = [
@@ -65,16 +71,33 @@ class _GradesScreenState extends State<GradesScreen>
     {"semester": "Spring 2025", "gpa": 3.8, "totalCreditHours": 3},
   ];
 
+  final List<Widget> _pages = const [MessagesPage(), ProfilePage(), MorePage()];
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) setState(() => _isLoading = false);
+    });
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _handleRefresh() async {
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {});
+  }
+
+  void _onAvatarMenu(String value) {
+    switch (value) {
+      case 'profile':
+        Navigator.pushNamed(context, '/profile');
+        break;
+      case 'dashboard':
+        Navigator.pushNamed(context, '/dashboard');
+        break;
+      case 'logout':
+        Navigator.pushNamed(context, '/logout');
+        break;
+    }
   }
 
   Future<void> _generateAndOpenPDF(Map<String, dynamic> transcript) async {
@@ -127,9 +150,7 @@ class _GradesScreenState extends State<GradesScreen>
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-    ); // opens system PDF viewer
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
   @override
@@ -137,64 +158,54 @@ class _GradesScreenState extends State<GradesScreen>
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Student Dashboard",
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: const AssetImage('assets/images/avatar.png'),
-              backgroundColor: cs.primaryContainer,
-            ),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: "Grades"),
-            Tab(text: "Transcript"),
-          ],
-        ),
+      appBar: CustomAppBar(
+        title: "Student Dashboard",
+        onAvatarMenu: _onAvatarMenu,
       ),
-      drawer: _buildDrawer(cs, context),
-      bottomNavigationBar: _buildBottomNav(cs),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Grades Tab
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Grades Overview",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                DropdownButton<String>(
-                  value: selectedSemester,
-                  onChanged: (value) {
-                    if (value != null) setState(() => selectedSemester = value);
-                  },
-                  items: semesters
-                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: SingleChildScrollView(
+      drawer: CustomDrawer(contextRef: context),
+      bottomNavigationBar: CustomBottomNav(
+        currentIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+          if (index > 0 && index - 1 < _pages.length) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => _pages[index - 1]),
+            );
+          }
+        },
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _handleRefresh,
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  // Grades Overview
+                  const Text(
+                    "Grades Overview",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButton<String>(
+                    value: selectedSemester,
+                    onChanged: (value) {
+                      if (value != null)
+                        setState(() => selectedSemester = value);
+                    },
+                    items: semesters
+                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Builder(
                       builder: (context) {
                         final semesterGrades = gradesData
                             .where((g) => g['semester'] == selectedSemester)
                             .toList();
-
                         if (semesterGrades.isEmpty) {
                           return Center(
                             child: Text(
@@ -231,235 +242,40 @@ class _GradesScreenState extends State<GradesScreen>
                       },
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Total Credit Hours: ${gradesData.where((g) => g['semester'] == selectedSemester).fold(0, (sum, g) => sum + g['creditHours'] as int)}",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          // Transcript Tab
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Transcript Overview",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView(
-                    children: transcriptData.map((t) {
-                      return Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          title: Text(
-                            t['semester'],
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            "GPA: ${t['gpa']} • Total Credit Hours: ${t['totalCreditHours']}",
-                          ),
-                          trailing: const Icon(Icons.picture_as_pdf),
-                          onTap: () => _generateAndOpenPDF(t),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Drawer _buildDrawer(ColorScheme cs, BuildContext context) {
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [cs.primary, cs.primaryContainer],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 32,
-                    backgroundImage: AssetImage('assets/images/avatar.png'),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          "John Doe",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "University of Hargeisa",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white70,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "Student • ID: 2025001",
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                children: [
-                  _drawerItem(
-                    Icons.dashboard_rounded,
-                    "Dashboard",
-                    onTap: () => Navigator.pushNamed(context, '/students/home'),
-                  ),
-                  _drawerItem(
-                    Icons.book_rounded,
-                    "Courses",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/courses'),
-                  ),
-                  _drawerItem(
-                    Icons.replay_circle_filled_rounded,
-                    "Course Retake",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/course-retake'),
-                  ),
-                  _drawerItem(
-                    Icons.assignment_turned_in_rounded,
-                    "Attendance",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/attendance'),
-                  ),
-                  _drawerItem(
-                    Icons.payments_rounded,
-                    "Finance",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/finance'),
-                  ),
-                  _drawerItem(
-                    Icons.calendar_month_rounded,
-                    "Academic Calendar",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/schedule'),
-                  ),
-                  _drawerItem(
-                    Icons.grade_rounded,
-                    "Grades & Transcripts",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/grades'),
-                  ),
-                  _drawerItem(
-                    Icons.event_available_rounded,
-                    "Exam Schedules",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/exam-report'),
-                  ),
-                  _drawerItem(
-                    Icons.groups_rounded,
-                    "Community",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/announcements'),
-                  ),
-                  _drawerItem(
-                    Icons.help_rounded,
-                    "Help & Support",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/support'),
-                  ),
-                  _drawerItem(
-                    Icons.settings_rounded,
-                    "Settings",
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/students/settings'),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/icon.png', width: 18, height: 18),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 16),
                   Text(
-                    "Powered by eALIF Team",
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    "Total Credit Hours: ${gradesData.where((g) => g['semester'] == selectedSemester).fold(0, (sum, g) => sum + g['creditHours'] as int)}",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Transcript Overview",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  ...transcriptData.map((t) {
+                    return Card(
+                      elevation: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          t['semester'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          "GPA: ${t['gpa']} • Total Credit Hours: ${t['totalCreditHours']}",
+                        ),
+                        trailing: const Icon(Icons.picture_as_pdf),
+                        onTap: () => _generateAndOpenPDF(t),
+                      ),
+                    );
+                  }).toList(),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BottomNavigationBar _buildBottomNav(ColorScheme cs) {
-    return BottomNavigationBar(
-      currentIndex: 0,
-      selectedItemColor: cs.primary,
-      unselectedItemColor: Colors.grey,
-      onTap: (index) {},
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.mail_rounded),
-          label: 'Messages',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: 'Profile',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.more_horiz_rounded),
-          label: 'More',
-        ),
-      ],
-    );
-  }
-
-  ListTile _drawerItem(IconData icon, String label, {VoidCallback? onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey.shade800),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      onTap: onTap,
     );
   }
 }

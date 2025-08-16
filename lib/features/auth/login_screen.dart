@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/auth_header.dart';
 import 'widgets/oauth_buttons.dart';
 
@@ -18,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _universityName;
   String? _logo;
 
-  // Hardcoded users and roles
   final List<String> emails = [
     'student@mail.com',
     'admin@mail.com',
@@ -48,6 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailCtrl = TextEditingController();
     _passwordCtrl = TextEditingController();
+    _checkIfAlreadyLoggedIn();
   }
 
   @override
@@ -59,14 +60,43 @@ class _LoginScreenState extends State<LoginScreen> {
     _logo = args?['logo'] as String?;
   }
 
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passwordCtrl.dispose();
-    super.dispose();
+  Future<void> _checkIfAlreadyLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loggedIn = prefs.getBool('logged_in') ?? false;
+    final savedRole = prefs.getString('role');
+    final savedUniversity = prefs.getString('universityName');
+    final savedLogo = prefs.getString('logo');
+
+    if (loggedIn && savedRole != null) {
+      _navigateToDashboard(savedRole);
+    } else if (_universityName == null && savedUniversity != null) {
+      setState(() {
+        _universityName = savedUniversity;
+        _logo = savedLogo;
+      });
+    }
   }
 
-  void _signIn() {
+  void _navigateToDashboard(String role) {
+    String route = '/dashboard';
+    switch (role) {
+      case 'student':
+        route = '/students/home';
+        break;
+      case 'teacher':
+        route = '/teacher/home';
+        break;
+      case 'admin':
+        route = '/admin/home';
+        break;
+      case 'parent':
+        route = '/parent/home';
+        break;
+    }
+    Navigator.pushReplacementNamed(context, route);
+  }
+
+  Future<void> _signIn() async {
     final email = _emailCtrl.text.trim();
     final pass = _passwordCtrl.text.trim();
 
@@ -77,26 +107,22 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Validate user
     if (emails.contains(email) && pass == password) {
       final role = roles[email];
-      String route = '/dashboard'; // default
 
-      switch (role) {
-        case 'student':
-          route = '/students/home';
-          break;
-        case 'teacher':
-          route = '/teacher/home';
-          break;
-        case 'admin':
-          route = '/admin/home';
-          break;
-        case 'parent':
-          route = '/parent/home';
-          break;
+      if (_rememberMe) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('logged_in', true);
+        await prefs.setString('role', role!);
+        if (_universityName != null) {
+          await prefs.setString('universityName', _universityName!);
+        }
+        if (_logo != null) {
+          await prefs.setString('logo', _logo!);
+        }
       }
-      Navigator.pushReplacementNamed(context, route);
+
+      _navigateToDashboard(role!);
     } else {
       ScaffoldMessenger.of(
         context,
@@ -110,6 +136,13 @@ class _LoginScreenState extends State<LoginScreen> {
       '/register',
       arguments: {'universityName': _universityName, 'logo': _logo},
     );
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
   }
 
   @override

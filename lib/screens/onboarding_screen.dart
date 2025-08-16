@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:university_portal/features/auth/widgets/university_picker_screen.dart';
-import 'package:university_portal/screens/student/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -34,33 +34,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     },
   ];
 
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_seen', true);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const UniversityPickerScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // very soft background
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Top Logo + Branding
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                // children: [
-                //   Image.asset('assets/images/icon.png', width: 50, height: 50),
-                //   const SizedBox(height: 8),
-                //   // Text(
-                //   //   "University Portal",
-                //   //   style: TextStyle(
-                //   //     fontSize: 16,
-                //   //     fontWeight: FontWeight.w600,
-                //   //     color: Colors.grey[800],
-                //   //   ),
-                //   // ),
-                // ],
-              ),
-            ),
-
-            // Onboarding pages
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -103,8 +92,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-
-            // Page indicators + buttons
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
@@ -114,14 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.blueAccent,
                     ),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const UniversityPickerScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: _completeOnboarding,
                     child: const Text("Skip"),
                   ),
                   SmoothPageIndicator(
@@ -140,12 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     onPressed: () {
                       if (currentIndex == pages.length - 1) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const UniversityPickerScreen(),
-                          ),
-                        );
+                        _completeOnboarding();
                       } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 400),
@@ -158,26 +133,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-
-            // Branding footer (small & higher up)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                // children: [
-                //   Image.asset('assets/images/icon.png', width: 50, height: 50),
-                //   const SizedBox(height: 8),
-                //   Text(
-                //     "Powered by eALIF Team",
-                //     style: TextStyle(
-                //       fontSize: 14,
-                //       fontWeight: FontWeight.w600,
-                //       color: Colors.grey[800],
-                //     ),
-                //   ),
-                // ],
               ),
             ),
           ],
