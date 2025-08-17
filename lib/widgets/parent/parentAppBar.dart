@@ -1,42 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:university_portal/features/auth/login_screen.dart';
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class ParentAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Function(String) onAvatarMenu;
+  final Color? backgroundColor; // Optional custom color
 
-  const CustomAppBar({
+  const ParentAppBar({
     super.key,
     required this.title,
     required this.onAvatarMenu,
+    this.backgroundColor,
   });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  Future<void> _handleMenuAction(BuildContext context, String value) async {
-    if (value == 'logout') {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear(); // remove all stored user data
-
-      // Navigate to Login and remove everything else from stack
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
-    } else {
-      // Call the parent handler for other actions (profile, dashboard, etc.)
-      onAvatarMenu(value);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: cs.primary,
+      backgroundColor:
+          backgroundColor ??
+          const Color(0xFF00897B), // Distinct teal color for parents
       title: Text(
         title,
         style: const TextStyle(
@@ -46,7 +32,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         PopupMenuButton<String>(
-          onSelected: (value) => _handleMenuAction(context, value),
+          onSelected: onAvatarMenu,
           color: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

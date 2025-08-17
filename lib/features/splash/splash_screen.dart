@@ -40,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startSplashSequence() async {
-    const totalDuration = 60; // seconds to show splash
+    const totalDuration = 15; // seconds to show splash
     int elapsed = 0;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       setState(() {
