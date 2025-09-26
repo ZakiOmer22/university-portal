@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student"); // ✅ Default lowercase
+  const [role, setRole] = useState("STUDENT"); // ✅ match enum
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,16 +40,21 @@ export default function RegisterPage() {
     formData.append("fullName", name.trim());
     formData.append("email", email.trim());
     formData.append("password", password);
-    formData.append("role", role.toLowerCase()); // ✅ Lowercase
+    formData.append("role", role);
     if (profileImage) formData.append("profileImage", profileImage);
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${window.location.origin}/api/auth/register`, {
         method: "POST",
-        body: formData,
+        body: formData, // ✅ no headers
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = { message: "Server did not return JSON" };
+      }
 
       if (!res.ok) {
         toast.error(data.message || "Registration failed!");
@@ -60,10 +65,12 @@ export default function RegisterPage() {
       toast.success("Registration submitted! Awaiting admin approval.");
       setTimeout(() => router.push("/auth/login"), 2000);
     } catch (err) {
+      console.error("❌ Fetch error:", err);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
+
   }
 
   return (
@@ -123,12 +130,17 @@ export default function RegisterPage() {
               onChange={(e) => setRole(e.target.value)}
               className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="student">Student</option>
-              <option value="parent">Parent</option>
-              <option value="teacher">Teacher</option>
-              <option value="faculty">Faculty</option>
-              <option value="employee">Employee</option>
-              <option value="admin">Admin</option>
+              <option value="STUDENT">Student</option>
+              <option value="PARENT">Parent</option>
+              <option value="TEACHER">Teacher</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="ADMIN">Admin</option>
+              <option value="FINANCE">Finance</option>
+              <option value="REGISTRAR">Registrar</option>
+              <option value="EXAMINATION">Examination</option>
+              <option value="HR">HR</option>
+              <option value="GRADUATED">Graduated</option>
+              <option value="LEADER">Class Leader</option> {/* ✅ FIX */}
             </select>
           </div>
 

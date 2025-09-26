@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exam Report - University of Hargeisa</title>
+    <style>
+      body {
+        font-family: serif;
+        margin: 0;
+        color: #1a202c;
+        background: white;
+      }
+      main {
+        padding: 40px 60px;
+        margin: 0;
+        width: 100vw;
+        box-sizing: border-box;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        user-select: none;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .header-left img {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+      }
+      .university-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #4c51bf;
+      }
+      .header-right {
+        text-align: right;
+        font-size: 0.9rem;
+        color: #4a5568;
+        max-width: 280px;
+      }
+      .header-right p {
+        margin: 2px 0;
+      }
+      hr {
+        border: none;
+        border-bottom: 1px solid #cbd5e0;
+        margin: 12px 0 12px;
+      }
+      .report-title {
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2d3748;
+      }
+      .metadata-table {
+        width: 100%;
+        margin-bottom: 24px;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      .metadata-table td {
+        padding: 6px 10px;
+      }
+      .metadata-table td:first-child {
+        font-weight: 600;
+        color: #4c51bf;
+        width: 150px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-bottom: 80px;
+      }
+      thead tr {
+        background: #edf2f7;
+      }
+      th,
+      td {
+        border: 1px solid #cbd5e0;
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+      tbody tr:nth-child(odd) {
+        background: #fff;
+      }
+      tbody tr:nth-child(even) {
+        background: #f7fafc;
+      }
+      footer {
+        text-align: center;
+        font-size: 1rem; /* Bigger text */
+        font-weight: 700; /* Bold */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        user-select: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #000; /* Black background */
+        color: #fff; /* White text */
+        padding: 12px 0; /* Vertical padding */
+        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2); /* Optional: slight shadow for contrast */
+        z-index: 1000; /* Always on top */
+      }
+      footer img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          margin: 0;
+        }
+        main {
+          padding: 10px 30px !important;
+          width: 100% !important;
+          margin: 0 !important;
+        }
+        footer {
+          position: fixed;
+          bottom: 10px;
+          left: 0;
+          width: 100%;
+          background: transparent;
+          color: #718096;
+          font-size: 0.75rem;
+        }
+        table,
+        tr,
+        td,
+        th {
+          page-break-inside: avoid !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="header-left">
+          <img src="/favicon.ico" alt="University Logo" />
+          <div class="university-name">University of Hargeisa</div>
+        </div>
+        <div class="header-right">
+          <p>Official Exam Report</p>
+          <p>Printed on: <span id="printedDate"></span></p>
+        </div>
+      </header>
+
+      <!-- Metadata table -->
+      <table class="metadata-table">
+        <tr>
+          <td>Student ID:</td>
+          <td>2025001</td>
+          <td>Enrollment ID:</td>
+          <td>ENR-2025-001</td>
+        </tr>
+        <tr>
+          <td>Report Type:</td>
+          <td>Semester Exam</td>
+          <td>Generated Date:</td>
+          <td><span id="generatedDate"></span></td>
+        </tr>
+      </table>
+
+      <hr />
+
+      <!-- Report Title -->
+      <div class="report-title">Semester 1 Exam Results</div>
+
+      <!-- Exam report table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Credit Hours</th>
+            <th>Midterm (30%)</th>
+            <th>Final (50%)</th>
+            <th>Assignment (20%)</th>
+            <th>Total</th>
+            <th>Grade Point</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+
+      <footer>
+        <img src="/favicon.ico" alt="eALIF Logo" />
+        <span>Powered by eALIF Team</span>
+      </footer>
+    </main>
+
+    <script>
+      const courses = [
+        {
+          code: "CS101",
+          name: "Intro to Programming",
+          credit: 3,
+          mid: 85,
+          final: 90,
+          assignment: 88,
+          total: 88,
+          gpa: 3.7,
+        },
+        {
+          code: "MATH102",
+          name: "Calculus",
+          credit: 4,
+          mid: 80,
+          final: 82,
+          assignment: 79,
+          total: 81,
+          gpa: 3.3,
+        },
+        {
+          code: "ENG103",
+          name: "English Composition",
+          credit: 2,
+          mid: 75,
+          final: 78,
+          assignment: 80,
+          total: 78,
+          gpa: 3.0,
+        },
+      ];
+
+      const tbody = document.getElementById("reportBody");
+      courses.forEach((course, index) => {
+        const tr = document.createElement("tr");
+        if (index % 2 === 1) tr.style.backgroundColor = "#f7fafc";
+
+        tr.innerHTML = `
+      <td>${course.code}</td>
+      <td>${course.name}</td>
+      <td>${course.credit}</td>
+      <td>${course.mid}</td>
+      <td>${course.final}</td>
+      <td>${course.assignment}</td>
+      <td>${course.total}</td>
+      <td>${course.gpa}</td>
+    `;
+        tbody.appendChild(tr);
+      });
+
+      const today = new Date().toLocaleDateString();
+      document.getElementById("printedDate").textContent = today;
+      document.getElementById("generatedDate").textContent = today;
+
+      // Auto print when page loads
+      window.onload = function () {
+        window.print();
+      };
+    </script>
+  </body>
+</html>

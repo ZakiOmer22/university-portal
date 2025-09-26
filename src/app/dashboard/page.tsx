@@ -20,7 +20,6 @@ export default function Dashboard() {
     try {
       const user = JSON.parse(userJson);
 
-      // Optional: check if user isActivated or approved here
       if (!user.activated && user.activated !== undefined) {
         toast.error("Account is not activated yet.");
         router.replace("/auth/activation-pending");
@@ -29,28 +28,50 @@ export default function Dashboard() {
 
       toast.success(`Welcome back, ${user.fullName || user.email}!`);
 
-      switch (user.role) {
-        case "admin":
+      // Normalize role to uppercase (to match your enum)
+      const role = (user.role || "").toUpperCase();
+
+      // Leaders still redirect to their own dashboard
+      switch (role) {
+        case "ADMIN":
           router.replace("/dashboard/admin");
           break;
-        case "teacher":
+        case "TEACHER":
           router.replace("/dashboard/teacher");
           break;
-        case "student":
+        case "STUDENT":
           router.replace("/dashboard/student");
           break;
-        case "parent":
+        case "LEADER": // ✅ leader student with extra dashboard
+          router.replace("/dashboard/leader");
+          break;
+        case "PARENT":
           router.replace("/dashboard/parent");
           break;
-        case "employee":
+        case "EMPLOYEE":
           router.replace("/dashboard/employee");
+          break;
+        case "FINANCE":
+          router.replace("/dashboard/finance");
+          break;
+        case "REGISTRAR":
+          router.replace("/dashboard/registrar");
+          break;
+        case "EXAMINATION":
+          router.replace("/dashboard/examination");
+          break;
+        case "HR":
+          router.replace("/dashboard/hr");
+          break;
+        case "GRADUATED":
+          router.replace("/dashboard/graduated");
           break;
         default:
           toast.error("Unknown user role. Please login again.");
           router.replace("/auth/login");
           break;
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to load user data. Please login again.");
       router.replace("/auth/login");
     } finally {

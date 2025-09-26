@@ -24,6 +24,8 @@ model User {
   parent        Parent?
   student       Student?
   teacher       Teacher?
+
+  ClassLeader ClassLeader[]
 }
 
 model Student {
@@ -40,6 +42,7 @@ model Student {
   user           User         @relation(fields: [userId], references: [id])
   submissions    Submission[]
   parents        Parent[]     @relation("ParentChildren")
+  classLeaderFor ClassLeader[] // relation: (if this student is assigned ClassLeader for some course)
 }
 
 model Teacher {
@@ -89,6 +92,7 @@ model Course {
   projects     Project[]
   teachers     Teacher[]    @relation("TeacherCourses")
   exams        Exam[]
+  classLeaders ClassLeader[] // relation: class leaders assigned to this course/class
 }
 
 model Enrollment {
@@ -185,15 +189,40 @@ model Role {
   permissions String[] // Array of permissions or JSON stored as String
 }
 
+/*
+  -- NEW MODEL: ClassLeader
+  A scoped assignment tying a Student to a Course as the class leader.
+  assignedBy is optional (user id of teacher/admin who assigned it).
+*/
+model ClassLeader {
+  id         String   @id @default(uuid())
+  studentId  String
+  courseId   String
+  assignedBy String?
+  createdAt  DateTime @default(now())
+
+  student    Student  @relation(fields: [studentId], references: [id])
+  course     Course   @relation(fields: [courseId], references: [id])
+  assignedByUser User? @relation(fields: [assignedBy], references: [id])
+
+  @@unique([studentId, courseId])
+}
+
+/*
+  NOTE: ClassLeader is intentionally small/simple. It records who is the
+  class leader for a particular course (class) and who assigned them.
+  This lets you query: "which students are class leaders for course X"
+*/
 enum UserRole {
-  admin
-  teacher
-  student
-  parent
-  employee
-  Finance
-  Registrar
-  Examination
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+  EMPLOYEE
+  FINANCE
+  REGISTRAR
+  EXAMINATION
   HR
-  Graduated
+  GRADUATED
+  LEADER
 }

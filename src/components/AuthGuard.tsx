@@ -6,8 +6,8 @@ import { Toaster, toast } from "sonner";
 
 type AuthGuardProps = {
     children: ReactNode;
-    allowedRoles?: string[]; // optional list of roles allowed
-    redirectPath?: string; // optional path to redirect unauthorized users
+    allowedRoles?: string[];
+    redirectPath?: string;
 };
 
 export default function AuthGuard({
@@ -38,9 +38,13 @@ export default function AuthGuard({
                 return;
             }
 
-            setUserRole(user.role || null);
+            const normalizedRole = (user.role || "").toUpperCase();
+            setUserRole(normalizedRole);
 
-            if (allowedRoles && !allowedRoles.includes(user.role)) {
+            if (
+                allowedRoles &&
+                !allowedRoles.map(r => r.toUpperCase()).includes(normalizedRole)
+            ) {
                 setAccessDenied(true);
                 toast.error("Access denied. You do not have permission to view this page.");
                 return;
@@ -68,13 +72,18 @@ export default function AuthGuard({
     }
 
     if (accessDenied) {
-        // Map roles to dashboards:
         const dashboardRoutes: Record<string, string> = {
-            admin: "/dashboard/admin",
-            teacher: "/dashboard/teacher",
-            student: "/dashboard/student",
-            parent: "/dashboard/parent",
-            employee: "/dashboard/employee",
+            ADMIN: "/dashboard/admin",
+            TEACHER: "/dashboard/teacher",
+            STUDENT: "/dashboard/student",
+            LEADER: "/dashboard/leader",
+            PARENT: "/dashboard/parent",
+            EMPLOYEE: "/dashboard/employee",
+            FINANCE: "/dashboard/finance",
+            REGISTRAR: "/dashboard/registrar",
+            EXAMINATION: "/dashboard/examination",
+            HR: "/dashboard/hr",
+            GRADUATED: "/dashboard/graduated",
         };
 
         const redirectTo = userRole && dashboardRoutes[userRole] ? dashboardRoutes[userRole] : "/";
@@ -85,27 +94,10 @@ export default function AuthGuard({
                 <main className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-6 text-center">
                     <div className="max-w-xl">
                         <h1 className="text-9xl font-extrabold text-red-600 select-none mb-8">403</h1>
-
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">Access Denied</h2>
                         <p className="text-gray-600 mb-8 max-w-md mx-auto">
                             Sorry, you do not have permission to view this page.
                         </p>
-
-                        {/* SVG illustration */}
-                        <svg
-                            className="mx-auto mb-8 w-64 h-64 text-red-200"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M12 9v3m0 4h.01M21 12c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8z"
-                            />
-                        </svg>
 
                         <button
                             onClick={() => router.replace(redirectTo)}
