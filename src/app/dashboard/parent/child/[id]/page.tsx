@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Sidebar from "@/components/parent/Sidebar"; // You may replace this with the below inline Sidebar if needed
+import Sidebar from "@/components/parent/Sidebar";
 import Tabs from "@/components/parent/Tabs";
 import AccountTab from "@/components/parent/AccountTab";
 import SemesterTab from "@/components/parent/SemesterTab";
 import ExamsTab from "@/components/parent/ExamsTab";
 import TranscriptTab from "@/components/parent/TranscriptTab";
 import ReportsTab from "@/components/parent/ReportsTab";
-import { cn } from "@/lib/utils"; // Assume your utility for conditional classes
+import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 
+// Update the reports property with the specific type values
 type PageStudent = {
     id: string;
     fullName: string;
@@ -52,6 +53,9 @@ type PageStudent = {
         id: string;
         title: string;
         description?: string;
+        type: "attendance" | "academic" | "financial" | "health" | "disciplinary"; // Updated with specific values
+        date: string;
+        status: "Published" | "Draft" | "Archived";
     }[];
 };
 
@@ -117,6 +121,9 @@ const dummyChildren: PageStudent[] = [
                 id: "r1",
                 title: "Progress Report Fall 2024",
                 description: "Good performance overall.",
+                type: "academic", // Updated to match expected type
+                date: "2024-12-15",
+                status: "Published",
             },
         ],
     },
@@ -166,11 +173,21 @@ const dummyChildren: PageStudent[] = [
                 id: "r2",
                 title: "Midterm Report Spring 2025",
                 description: "Needs improvement in attendance.",
+                type: "academic", // Updated to match expected type
+                date: "2025-03-20",
+                status: "Published",
+            },
+            {
+                id: "r3",
+                title: "Attendance Warning",
+                description: "Multiple absences recorded.",
+                type: "attendance", // Added different type for variety
+                date: "2025-03-15",
+                status: "Published",
             },
         ],
     },
 ];
-
 
 // Tab types
 type Tab = "Account" | "Current Semester" | "Exams" | "Transcript" | "Reports";
@@ -240,13 +257,13 @@ export default function ChildDetailsPage() {
             case "Transcript":
                 return <TranscriptTab transcript={student.transcript} />;
             case "Reports":
-                return <ReportsTab reports={student.reports} studentId={student.id} />;
+                // return <ReportsTab reports={student.reports} studentId={student.id} />;
             default:
                 return null;
         }
     };
 
-    // Sidebar content (unchanged)
+    // Sidebar content
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-gradient-to-b from-blue-900 to-indigo-900 text-white w-64 shadow-lg">
             <div className="flex items-center space-x-3 px-6 py-5 border-b border-indigo-700">
