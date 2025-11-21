@@ -1,10 +1,10 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import ProfileHeader from "@/components/parent/ProfileHeader";
 import QuickLinks from "@/components/parent/QuickLinks";
 import DashboardSkeleton from "@/components/parent/DashboardSkeleton";
-import AuthGuard from "@/components/AuthGuard"; // import AuthGuard
+import AuthGuard from "@/components/AuthGuard";
 
 interface DashboardLayoutProps {
     user: { fullName: string; role: string; profilePicture?: string } | null;
@@ -13,26 +13,87 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ user, loading, children }: DashboardLayoutProps) {
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        if (loading) {
+            setIsNavigating(false);
+        }
+    }, [loading]);
+
+    const handleLinkClick = () => {
+        setIsNavigating(true);
+        setTimeout(() => setIsNavigating(false), 300);
+    };
+
     return (
         <AuthGuard allowedRoles={["parent"]}>
-            <div className="p-6 max-w-7xl mx-auto min-h-screen">
-                <h1 className="text-3xl font-bold text-gray-900 mb-6">Parent Dashboard</h1>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
+                {/* Main Layout Container */}
+                <div className="flex min-h-screen">
+                    {/* Quick Links Sidebar - Full height on desktop */}
+                    <div className="hidden lg:block h-screen sticky top-0" onClick={handleLinkClick}>
+                        <QuickLinks />
+                    </div>
 
-                {loading ? (
-                    <DashboardSkeleton />
-                ) : (
-                    <>
-                        <ProfileHeader user={user} />
+                    {/* Main Content Area - Takes full available space */}
+                    <div className="flex-1 w-full min-w-0">
+                        <div className="p-4 lg:p-6 w-full">
+                            {/* Mobile spacing for hamburger menu */}
+                            <div className="lg:hidden h-4"></div>
+                            
+                            {/* Header Section */}
+                            <div className="mb-6 lg:mb-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent break-words">
+                                            Parent Portal
+                                        </h1>
+                                        <p className="text-gray-600 text-base lg:text-lg mt-1">Your monitoring dashboard</p>
+                                    </div>
+                                    <div className="flex items-center gap-4 flex-shrink-0">
+                                        <div className="bg-white/80 backdrop-blur-sm rounded-xl px-3 lg:px-4 py-2 shadow-lg border border-gray-100">
+                                            <div className="text-xs lg:text-sm text-gray-600">Semester</div>
+                                            <div className="font-semibold text-gray-900 text-sm lg:text-base">Fall 2024</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div className="mt-4">
-                            <QuickLinks />
+                            {loading && !isNavigating ? (
+                                <DashboardSkeleton />
+                            ) : (
+                                <div className="space-y-6 lg:space-y-8">
+                                    {/* Profile Section */}
+                                    <div className="transform transition-all duration-300">
+                                        <ProfileHeader user={user} />
+                                    </div>
+
+                                    {/* Main Content Area */}
+                                    <div className="transform transition-all duration-300">
+                                        <div className="bg-white/90 backdrop-blur-sm rounded-xl lg:rounded-2xl shadow-lg lg:shadow-xl border border-white/20 p-4 lg:p-8 w-full">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
+                                                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 break-words">Student Overview</h2>
+                                                <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                    Last updated: Just now
+                                                </div>
+                                            </div>
+                                            <div className="w-full">
+                                                {children}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    </div>
+                </div>
 
-                        <div className="mt-8">
-                            {children /* This is where the page-specific content goes */}
-                        </div>
-                    </>
-                )}
+                {/* Mobile Quick Links */}
+                <div className="lg:hidden">
+                    <QuickLinks />
+                </div>
             </div>
         </AuthGuard>
     );

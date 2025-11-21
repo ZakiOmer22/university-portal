@@ -1,21 +1,90 @@
 import Image from "next/image";
 
-export default function ProfileHeader({ user }: { user: any }) {
+interface User {
+  fullName: string;
+  role: string;
+  profilePicture?: string;
+}
+
+interface ProfileHeaderProps {
+  user: User | null;
+}
+
+export default function ProfileHeader({ user }: ProfileHeaderProps) {
   return (
-    <section className="flex items-center gap-4 bg-white shadow p-4 rounded-lg">
-      <Image
-        src={
-          user?.profilePicture ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || "User")}&background=4F46E5&color=fff`
-        }
-        alt="Parent Avatar"
-        width={64}
-        height={64}
-        className="rounded-full object-cover"
-      />
-      <div>
-        <h2 className="text-xl font-semibold">{user?.fullName?.split(" ")[0]}</h2>
-        <p className="text-gray-500 capitalize">{user?.role}</p>
+    <section className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-700 rounded-3xl shadow-2xl overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-black/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] bg-[length:20px_20px]"></div>
+      </div>
+      
+      <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between p-8">
+        {/* User Info */}
+        <div className="flex items-center gap-6 mb-6 lg:mb-0">
+          <div className="relative">
+            <div className="absolute -inset-2 bg-white/20 rounded-2xl blur-sm"></div>
+            <Image
+              src={
+                user?.profilePicture ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || "Parent")}&background=ffffff&color=4F46E5&bold=true&size=128`
+              }
+              alt="Parent Profile"
+              width={100}
+              height={100}
+              className="relative rounded-2xl object-cover shadow-2xl border-4 border-white/20"
+            />
+            {/* Online Status */}
+            <div className="absolute -bottom-2 -right-2 w-7 h-7 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+            </div>
+          </div>
+          
+          <div className="text-white">
+            <h1 className="text-3xl font-bold mb-2">
+              Welcome back, {user?.fullName?.split(" ")[0]}! 👨‍👩‍👧‍👦
+            </h1>
+            <div className="flex items-center gap-4 text-white/90">
+              <span className="capitalize text-lg font-semibold bg-white/20 px-3 py-1 rounded-full">
+                {user?.role}
+              </span>
+              <span className="text-white/70">•</span>
+              <span className="flex items-center gap-2 font-medium">
+                <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
+                Active Parent
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="flex gap-4">
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-white">2</div>
+            <div className="text-white/80 text-sm">Students</div>
+          </div>
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-white">A-</div>
+            <div className="text-white/80 text-sm">Avg Grade</div>
+          </div>
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20">
+            <div className="text-2xl font-bold text-white">98%</div>
+            <div className="text-white/80 text-sm">Attendance</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="relative z-10 px-8 pb-6">
+        <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+          <span>Academic Year Progress</span>
+          <span>75%</span>
+        </div>
+        <div className="w-full bg-white/20 rounded-full h-2">
+          <div 
+            className="bg-gradient-to-r from-emerald-400 to-cyan-400 h-2 rounded-full shadow-lg shadow-emerald-500/25"
+            style={{ width: '75%' }}
+          ></div>
+        </div>
       </div>
     </section>
   );

@@ -5,65 +5,31 @@ import { useParams, useRouter } from "next/navigation";
 import DashboardLayout from "@/components/teacher/DashboardLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Users, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Users, 
+  Search, 
+  ChevronDown, 
+  ChevronUp, 
+  Mail, 
+  ArrowLeft,
+  Filter,
+  Download,
+  MoreVertical
+} from "lucide-react";
 
 // Helper to generate dummy students for each course
 function generateDummyStudents(courseId: string, count: number) {
     const firstNames = [
-        "Alice",
-        "Bob",
-        "Charlie",
-        "Dana",
-        "Ethan",
-        "Fiona",
-        "George",
-        "Hannah",
-        "Ian",
-        "Julia",
-        "Kevin",
-        "Laura",
-        "Mike",
-        "Nina",
-        "Oscar",
-        "Pam",
-        "Quinn",
-        "Rachel",
-        "Steve",
-        "Tina",
-        "Uma",
-        "Victor",
-        "Wendy",
-        "Xander",
-        "Yara",
-        "Zane",
+        "Alice", "Bob", "Charlie", "Dana", "Ethan", "Fiona", "George", "Hannah", "Ian", "Julia",
+        "Kevin", "Laura", "Mike", "Nina", "Oscar", "Pam", "Quinn", "Rachel", "Steve", "Tina",
     ];
     const lastNames = [
-        "Johnson",
-        "Smith",
-        "Lee",
-        "White",
-        "Brown",
-        "Davis",
-        "Wilson",
-        "Moore",
-        "Taylor",
-        "Anderson",
-        "Thomas",
-        "Jackson",
-        "Martin",
-        "Thompson",
-        "Garcia",
-        "Martinez",
-        "Robinson",
-        "Clark",
-        "Lewis",
-        "Walker",
-        "Hall",
-        "Allen",
-        "Young",
-        "King",
-        "Wright",
-        "Scott",
+        "Johnson", "Smith", "Lee", "White", "Brown", "Davis", "Wilson", "Moore", "Taylor", "Anderson",
+        "Thomas", "Jackson", "Martin", "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Lewis", "Walker",
     ];
 
     const students = [];
@@ -78,8 +44,15 @@ function generateDummyStudents(courseId: string, count: number) {
             Math.floor(Math.random() * 12),
             Math.floor(Math.random() * 28) + 1
         ).toISOString().split("T")[0];
-        const status = i % 3 === 0 ? "Inactive" : "Active";
-        students.push({ id: `${courseId}-stu${i + 1}`, fullName, email, phone, enrollmentDate, status });
+        const status = i % 5 === 0 ? "Inactive" : "Active";
+        students.push({ 
+            id: `${courseId}-stu${i + 1}`, 
+            fullName, 
+            email, 
+            phone, 
+            enrollmentDate, 
+            status 
+        });
     }
     return students;
 }
@@ -101,7 +74,7 @@ const dummyStudentsByCourseId: Record<
     course3: generateDummyStudents("course3", 25),
 };
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
 
 type SortKey = "fullName" | "email" | "phone" | "enrollmentDate" | "status" | null;
 type SortDirection = "asc" | "desc";
@@ -110,9 +83,7 @@ export default function StudentsPage() {
     const params = useParams();
     const router = useRouter();
 
-    // Fix: Ensure selectedCourseId is always a string, never string[]
     const initialCourseId = Array.isArray(params.id) ? params.id[0] : (params.id ?? dummyCourses[0].id);
-
     const [selectedCourseId, setSelectedCourseId] = useState(initialCourseId);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -164,13 +135,11 @@ export default function StudentsPage() {
             const bVal = b[sortKey]!;
 
             if (sortKey === "enrollmentDate") {
-                // date string comparison
                 return sortDirection === "asc"
                     ? new Date(aVal).getTime() - new Date(bVal).getTime()
                     : new Date(bVal).getTime() - new Date(aVal).getTime();
             }
 
-            // string comparison
             const aStr = aVal.toString().toLowerCase();
             const bStr = bVal.toString().toLowerCase();
             if (aStr < bStr) return sortDirection === "asc" ? -1 : 1;
@@ -211,231 +180,304 @@ export default function StudentsPage() {
         setCurrentPage((p) => Math.min(pageCount, p + 1));
     }
 
+    const selectedCourse = dummyCourses.find(course => course.id === selectedCourseId);
+
     return (
-        <DashboardLayout
-            
-        >
-            <section className="p-6 max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8 flex items-center gap-3 text-indigo-700">
-                    <Users size={32} /> Students Enrolled
-                </h1>
+        <DashboardLayout>
+            <section className="p-6 max-w-7xl mx-auto space-y-8">
+                {/* Header Section */}
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-100 rounded-lg">
+                                <Users className="h-6 w-6 text-indigo-600" />
+                            </div>
+                            <h1 className="text-3xl font-bold text-gray-900">Students Management</h1>
+                        </div>
+                        <p className="text-gray-600">
+                            {selectedCourse ? `${selectedCourse.code} - ${selectedCourse.name}` : "Manage student enrollments and information"}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" className="flex items-center gap-2">
+                            <Download className="h-4 w-4" />
+                            Export
+                        </Button>
+                        <Button 
+                            onClick={() => router.back()}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to Dashboard
+                        </Button>
+                    </div>
+                </div>
 
                 {/* Stats Cards */}
-                <div className="flex flex-col sm:flex-row gap-6 mb-8">
-                    <div className="flex-1 bg-indigo-100 rounded-lg p-6 shadow flex flex-col items-center">
-                        <div className="text-indigo-700 mb-2">
-                            <Users size={36} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-indigo-600 mb-1">Total Students</p>
+                                    <p className="text-3xl font-bold text-indigo-900">{students.length}</p>
+                                </div>
+                                <div className="p-3 bg-indigo-100 rounded-full">
+                                    <Users className="h-6 w-6 text-indigo-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-green-600 mb-1">Active Students</p>
+                                    <p className="text-3xl font-bold text-green-900">
+                                        {students.filter(s => s.status === "Active").length}
+                                    </p>
+                                </div>
+                                <div className="p-3 bg-green-100 rounded-full">
+                                    <Users className="h-6 w-6 text-green-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-blue-600 mb-1">Filtered Results</p>
+                                    <p className="text-3xl font-bold text-blue-900">{filteredStudents.length}</p>
+                                </div>
+                                <div className="p-3 bg-blue-100 rounded-full">
+                                    <Filter className="h-6 w-6 text-blue-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Filters Section */}
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    <label htmlFor="course-select" className="font-semibold text-gray-700 whitespace-nowrap text-sm">
+                                        Select Course:
+                                    </label>
+                                    <select
+                                        id="course-select"
+                                        value={selectedCourseId}
+                                        onChange={handleCourseChange}
+                                        className="border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white min-w-[250px]"
+                                    >
+                                        {dummyCourses.map(({ id, code, name, semester }) => (
+                                            <option key={id} value={id}>
+                                                {code} - {name} (Semester {semester})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="relative max-w-md w-full">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                <Input
+                                    type="search"
+                                    placeholder="Search students by name, email, phone, or status..."
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="pl-10 pr-4 py-2.5 w-full"
+                                />
+                            </div>
                         </div>
-                        <p className="text-xl font-semibold text-indigo-900">Total Students</p>
-                        <p className="text-3xl font-bold text-indigo-800">{students.length}</p>
-                    </div>
-                    <div className="flex-1 bg-green-100 rounded-lg p-6 shadow flex flex-col items-center">
-                        <p className="text-xl font-semibold text-green-900 mb-1">
-                            Filtered Students
-                        </p>
-                        <p className="text-4xl font-extrabold text-green-800">
-                            {filteredStudents.length}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
-                    <div className="flex items-center gap-3">
-                        <label
-                            htmlFor="course-select"
-                            className="font-semibold text-gray-700 whitespace-nowrap"
-                        >
-                            Select Class / Course:
-                        </label>
-                        <select
-                            id="course-select"
-                            value={selectedCourseId}
-                            onChange={handleCourseChange}
-                            className="border border-gray-300 rounded px-4 py-2"
-                        >
-                            {dummyCourses.map(({ id, code, name, semester }) => (
-                                <option key={id} value={id}>
-                                    {code} - {name} (Semester {semester})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="relative max-w-sm w-full">
-                        <input
-                            type="search"
-                            placeholder="Search by name, email, phone, or status..."
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            aria-label="Search students"
-                        />
-                        <Search
-                            size={20}
-                            className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 pointer-events-none"
-                        />
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {error && (
-                    <Alert variant="destructive" className="mb-6">
+                    <Alert variant="destructive">
                         <AlertTitle>Error</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 )}
 
-                {loading ? (
-                    <table className="w-full table-auto border-collapse border border-gray-300 rounded-md">
-                        <thead>
-                            <tr>
-                                {["Name", "Email", "Phone", "Enrollment Date", "Status", "Actions"].map((header, idx) => (
-                                    <th
-                                        key={idx}
-                                        className={`border border-gray-300 p-3 bg-gray-100 ${idx === 0 ? "rounded-tl-md" : ""
-                                            } ${idx === 5 ? "rounded-tr-md" : ""} whitespace-nowrap text-left font-semibold text-indigo-900`}
-                                    >
-                                        <Skeleton className="h-5 w-20" />
-                                    </th>
+                {/* Table Section */}
+                <Card>
+                    <CardContent className="p-0">
+                        {loading ? (
+                            <div className="p-6 space-y-4">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="flex items-center space-x-4">
+                                        <Skeleton className="h-12 w-12 rounded-full" />
+                                        <div className="space-y-2 flex-1">
+                                            <Skeleton className="h-4 w-[250px]" />
+                                            <Skeleton className="h-4 w-[200px]" />
+                                        </div>
+                                    </div>
                                 ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {[...Array(PAGE_SIZE)].map((_, i) => (
-                                <tr key={i} className="animate-pulse">
-                                    {[...Array(6)].map((_, j) => (
-                                        <td key={j} className="border border-gray-300 p-3">
-                                            <Skeleton className="h-5 w-full" />
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : filteredStudents.length === 0 ? (
-                    <p className="italic text-center text-gray-600 py-12">No students found.</p>
-                ) : (
-                    <>
-                        <div className="overflow-x-auto rounded-md border border-gray-300 shadow-sm">
-                            <table
-                                className="min-w-full table-fixed border-collapse border border-gray-300"
-                                style={{ tableLayout: "fixed" }}
-                            >
-                                <thead className="bg-indigo-100 sticky top-0 z-10">
-                                    <tr>
-                                        {[
-                                            { key: "fullName", label: "Name" },
-                                            { key: "email", label: "Email" },
-                                            { key: "phone", label: "Phone" },
-                                            { key: "enrollmentDate", label: "Enrollment Date" },
-                                            { key: "status", label: "Status" },
-                                        ].map(({ key, label }) => (
-                                            <th
-                                                key={key}
-                                                onClick={() => onSort(key as SortKey)}
-                                                className="cursor-pointer select-none border border-gray-300 p-3 text-left text-indigo-900 font-semibold whitespace-nowrap"
-                                                title={`Sort by ${label}`}
-                                            >
-                                                <div className="flex items-center gap-1">
-                                                    <span>{label}</span>
-                                                    {sortKey === key ? (
-                                                        sortDirection === "asc" ? (
-                                                            <ChevronUp size={16} />
-                                                        ) : (
-                                                            <ChevronDown size={16} />
-                                                        )
-                                                    ) : null}
-                                                </div>
-                                            </th>
-                                        ))}
-                                        <th className="border border-gray-300 p-3 text-left text-indigo-900 font-semibold whitespace-nowrap">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paginatedStudents.map(({ id, fullName, email, phone, enrollmentDate, status }) => (
-                                        <tr
-                                            key={id}
-                                            className="hover:bg-indigo-50 transition cursor-pointer"
-                                            onClick={() => alert(`Open student details page for ${fullName} (ID: ${id})`)}
-                                        >
-                                            <td className="border border-gray-300 p-3 whitespace-nowrap">{fullName}</td>
-                                            <td className="border border-gray-300 p-3 truncate">{email}</td>
-                                            <td className="border border-gray-300 p-3 whitespace-nowrap">{phone}</td>
-                                            <td className="border border-gray-300 p-3 whitespace-nowrap">{enrollmentDate}</td>
-                                            <td className="border border-gray-300 p-3 whitespace-nowrap">
-                                                <span
-                                                    className={`inline-block px-2 py-1 rounded text-sm font-semibold ${status === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            </div>
+                        ) : filteredStudents.length === 0 ? (
+                            <div className="text-center py-12">
+                                <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">No students found</h3>
+                                <p className="text-gray-600 max-w-sm mx-auto">
+                                    {searchTerm ? "No students match your search criteria." : "No students are enrolled in this course."}
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b bg-gray-50/50">
+                                                {[
+                                                    { key: "fullName", label: "Student Name", width: "w-1/4" },
+                                                    { key: "email", label: "Email Address", width: "w-1/4" },
+                                                    { key: "phone", label: "Phone", width: "w-1/6" },
+                                                    { key: "enrollmentDate", label: "Enrollment Date", width: "w-1/6" },
+                                                    { key: "status", label: "Status", width: "w-1/6" },
+                                                    { key: "actions", label: "Actions", width: "w-1/6" },
+                                                ].map(({ key, label, width }) => (
+                                                    <th
+                                                        key={key}
+                                                        onClick={() => key !== "actions" && onSort(key as SortKey)}
+                                                        className={`p-4 text-left text-sm font-semibold text-gray-900 ${width} ${
+                                                            key !== "actions" ? "cursor-pointer hover:bg-gray-100 transition-colors" : ""
                                                         }`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            {label}
+                                                            {key !== "actions" && sortKey === key && (
+                                                                sortDirection === "asc" ? 
+                                                                <ChevronUp className="h-4 w-4" /> : 
+                                                                <ChevronDown className="h-4 w-4" />
+                                                            )}
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {paginatedStudents.map(({ id, fullName, email, phone, enrollmentDate, status }) => (
+                                                <tr 
+                                                    key={id} 
+                                                    className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                                                    onClick={() => alert(`Open student details page for ${fullName} (ID: ${id})`)}
                                                 >
-                                                    {status}
-                                                </span>
-                                            </td>
-                                            <td className="border border-gray-300 p-3 whitespace-nowrap">
-                                                <button
-                                                    className="text-indigo-600 hover:text-indigo-800 font-semibold"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        alert(`Message sent to ${fullName} (${email})`);
-                                                    }}
-                                                    aria-label={`Send message to ${fullName}`}
-                                                >
-                                                    Message
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
+                                                                <span className="font-semibold text-indigo-600 text-sm">
+                                                                    {fullName.split(' ').map(n => n[0]).join('')}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">{fullName}</p>
+                                                                <p className="text-sm text-gray-500">ID: {id}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <p className="text-gray-900">{email}</p>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <p className="text-gray-600">{phone}</p>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <p className="text-gray-600">{enrollmentDate}</p>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <Badge 
+                                                            variant={status === "Active" ? "default" : "secondary"}
+                                                            className={status === "Active" 
+                                                                ? "bg-green-100 text-green-800 hover:bg-green-100" 
+                                                                : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                                                            }
+                                                        >
+                                                            {status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="flex items-center gap-2"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    alert(`Message sent to ${fullName} (${email})`);
+                                                                }}
+                                                            >
+                                                                <Mail className="h-4 w-4" />
+                                                                Message
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                        {/* Pagination */}
-                        <div className="flex justify-center items-center gap-6 mt-6 flex-wrap">
-                            <button
-                                onClick={prevPage}
-                                disabled={currentPage === 1}
-                                className={`px-5 py-2 rounded-md border font-semibold ${currentPage === 1
-                                    ? "border-gray-300 text-gray-400 cursor-not-allowed"
-                                    : "border-indigo-500 text-indigo-600 hover:bg-indigo-50"
-                                    } transition`}
-                                aria-label="Previous page"
-                            >
-                                Previous
-                            </button>
-
-                            <span className="font-semibold text-gray-700 whitespace-nowrap">
-                                Page {currentPage} of {pageCount}
-                            </span>
-
-                            <button
-                                onClick={nextPage}
-                                disabled={currentPage === pageCount}
-                                className={`px-5 py-2 rounded-md border font-semibold ${currentPage === pageCount
-                                    ? "border-gray-300 text-gray-400 cursor-not-allowed"
-                                    : "border-indigo-500 text-indigo-600 hover:bg-indigo-50"
-                                    } transition`}
-                                aria-label="Next page"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </>
-                )}
-
-                {/* Back button */}
-                <div className="mt-12 flex justify-center">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-8 rounded shadow-md transition"
-                    >
-                        Back to Dashboard
-                    </button>
-                </div>
+                                {/* Pagination */}
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-t bg-gray-50/50">
+                                    <div className="text-sm text-gray-600 mb-4 sm:mb-0">
+                                        Showing {((currentPage - 1) * PAGE_SIZE) + 1} to {Math.min(currentPage * PAGE_SIZE, sortedStudents.length)} of {sortedStudents.length} students
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={prevPage}
+                                            disabled={currentPage === 1}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            {Array.from({ length: Math.min(5, pageCount) }, (_, i) => {
+                                                const pageNum = i + 1;
+                                                return (
+                                                    <Button
+                                                        key={pageNum}
+                                                        variant={currentPage === pageNum ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        className="w-8 h-8 p-0"
+                                                    >
+                                                        {pageNum}
+                                                    </Button>
+                                                );
+                                            })}
+                                            {pageCount > 5 && <span className="px-2">...</span>}
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={nextPage}
+                                            disabled={currentPage === pageCount}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
             </section>
         </DashboardLayout>
     );

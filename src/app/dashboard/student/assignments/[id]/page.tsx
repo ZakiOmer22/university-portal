@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/student/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle2, XCircle, Upload } from "lucide-react";
+import { AlertCircle, CheckCircle2, XCircle, Upload, Calendar, FileText, Clock, Download, User, Award } from "lucide-react";
 
 interface AssignmentDetail {
     id: string;
@@ -18,10 +18,13 @@ interface AssignmentDetail {
     status: "pending" | "completed" | "overdue";
     maxScore: number;
     teacherFeedback?: string;
+    instructions?: string;
+    attachments?: { name: string; url: string }[];
     studentSubmission?: {
         fileName: string;
-        submittedAt: string; // ISO string
-        score?: number; // out of maxScore
+        submittedAt: string;
+        score?: number;
+        feedback?: string;
     };
 }
 
@@ -33,49 +36,58 @@ const dummyAssignmentDetails: Record<string, AssignmentDetail> = {
         dueDate: "2025-08-20T23:59:59Z",
         courseCode: "CS101",
         courseName: "Computer Science 101",
-        description:
-            "Submit your project proposal outlining your topic, objectives, and methodology.",
+        description: "Submit your project proposal outlining your topic, objectives, and methodology.",
+        instructions: "Your proposal should be 2-3 pages long and include:\n• Problem statement\n• Objectives\n• Methodology\n• Expected outcomes\n• Timeline\n\nFormat: PDF or Word document",
         status: "pending",
         maxScore: 100,
+        attachments: [
+            { name: "Assignment Guidelines.pdf", url: "#" },
+            { name: "Project Examples.zip", url: "#" }
+        ],
         studentSubmission: undefined,
     },
     a3: {
         id: "a3",
-        title: "Homework 5",
+        title: "Homework 5 - Linear Algebra Problems",
         dueDate: "2025-08-18T23:59:59Z",
         courseCode: "MATH201",
         courseName: "Advanced Mathematics",
-        description: "Solve the set of problems listed in the homework sheet.",
+        description: "Solve the set of problems listed in the homework sheet covering matrix operations and linear transformations.",
+        instructions: "Show all your work and calculations. Submit as a single PDF file.\n\nProblems to solve:\n1. Matrix multiplication\n2. Determinants\n3. Eigenvalues and eigenvectors\n4. Linear transformations",
         status: "completed",
         maxScore: 50,
-        teacherFeedback: "Good work! A few minor mistakes.",
+        teacherFeedback: "Excellent work on problems 1-3! For problem 4, remember to show the transformation matrix explicitly. Overall, great understanding of the concepts.",
+        attachments: [
+            { name: "Homework_Problems.pdf", url: "#" },
+            { name: "Solution_Template.docx", url: "#" }
+        ],
         studentSubmission: {
-            fileName: "homework5.pdf",
+            fileName: "homework5_solutions.pdf",
             submittedAt: "2025-08-15T14:30:00Z",
             score: 45,
         },
     },
 };
 
-function statusBadge(status: AssignmentDetail["status"]) {
+function StatusBadge({ status }: { status: AssignmentDetail["status"] }) {
     switch (status) {
         case "pending":
             return (
-                <Badge className="bg-yellow-100 text-yellow-800 flex items-center gap-1">
-                    <XCircle size={14} />
-                    Pending
+                <Badge className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1">
+                    <Clock size={14} />
+                    Pending Submission
                 </Badge>
             );
         case "completed":
             return (
-                <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
                     <CheckCircle2 size={14} />
-                    Completed
+                    Submitted
                 </Badge>
             );
         case "overdue":
             return (
-                <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
+                <Badge className="bg-red-100 text-red-800 border-red-200 flex items-center gap-1">
                     <XCircle size={14} />
                     Overdue
                 </Badge>
@@ -85,7 +97,6 @@ function statusBadge(status: AssignmentDetail["status"]) {
 
 export default function AssignmentDetailPage() {
     const params = useParams();
-    // Narrowing assignmentId from string | string[] | undefined to string
     const assignmentIdParam = params?.id;
     const assignmentId = Array.isArray(assignmentIdParam)
         ? assignmentIdParam[0]
@@ -100,7 +111,6 @@ export default function AssignmentDetailPage() {
         profilePicture?: string;
     } | null>(null);
 
-    // Submission state
     const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -108,7 +118,6 @@ export default function AssignmentDetailPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Allowed file types for upload
     const allowedTypes = [
         "application/pdf",
         "application/msword",
@@ -125,7 +134,6 @@ export default function AssignmentDetailPage() {
         setLoading(true);
         setError(null);
 
-        // Simulate fetching assignment details
         setTimeout(() => {
             if (dummyAssignmentDetails[assignmentId]) {
                 setAssignment(dummyAssignmentDetails[assignmentId]);
@@ -137,7 +145,6 @@ export default function AssignmentDetailPage() {
         }, 1000);
     }, [assignmentId]);
 
-    // Handle file selection + validation
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         setSubmitError(null);
         setSubmitSuccess(null);
@@ -148,7 +155,13 @@ export default function AssignmentDetailPage() {
                 setSubmitError(
                     `File type "${file.type}" not allowed. Allowed types: PDF, DOC, DOCX, ZIP, RAR, TXT.`
                 );
-                e.target.value = ""; // reset file input
+                e.target.value = "";
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) { // 50MB limit
+                setSubmitError("File size too large. Maximum size is 50MB.");
+                e.target.value = "";
                 return;
             }
 
@@ -156,7 +169,6 @@ export default function AssignmentDetailPage() {
         }
     }
 
-    // Confirmation dialog + submit
     async function handleSubmit() {
         if (!selectedFile) {
             setSubmitError("Please select a file to submit.");
@@ -168,13 +180,11 @@ export default function AssignmentDetailPage() {
             return;
         }
 
-        // Confirm before submitting
         const confirm = window.confirm(
             `Are you sure you want to submit "${selectedFile.name}" for this assignment? Once submitted, you cannot re-upload.`
         );
         if (!confirm) return;
 
-        // Check if past due date
         const now = new Date();
         const dueDate = new Date(assignment.dueDate);
         if (now > dueDate) {
@@ -185,7 +195,6 @@ export default function AssignmentDetailPage() {
         setUploading(true);
         setSubmitError(null);
 
-        // Simulate upload delay
         setTimeout(() => {
             setAssignment((prev) =>
                 prev
@@ -196,7 +205,7 @@ export default function AssignmentDetailPage() {
                             submittedAt: new Date().toISOString(),
                             score: undefined,
                         },
-                        status: "pending",
+                        status: "completed",
                     }
                     : prev
             );
@@ -208,137 +217,324 @@ export default function AssignmentDetailPage() {
         }, 1500);
     }
 
+    const getDaysUntilDue = (dueDate: string) => {
+        const today = new Date();
+        const due = new Date(dueDate);
+        const diffTime = due.getTime() - today.getTime();
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    const daysUntilDue = assignment ? getDaysUntilDue(assignment.dueDate) : 0;
+    const isUrgent = daysUntilDue <= 2 && assignment?.status === "pending";
+
     return (
         <DashboardLayout user={user} loading={loading}>
-            <section className="bg-white p-6 rounded-lg shadow space-y-6 max-w-3xl mx-auto">
+            <div className="space-y-8 max-w-4xl mx-auto">
                 {error && (
-                    <Alert variant="destructive" className="flex items-start gap-2">
-                        <AlertCircle className="h-5 w-5 mt-0.5" />
+                    <Alert variant="destructive" className="flex items-start gap-2 border-red-200 bg-red-50">
+                        <AlertCircle className="h-5 w-5 mt-0.5 text-red-600" />
                         <div>
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
+                            <AlertTitle className="text-red-800">Error</AlertTitle>
+                            <AlertDescription className="text-red-700">{error}</AlertDescription>
                         </div>
                     </Alert>
                 )}
 
                 {loading ? (
-                    <>
-                        <Skeleton className="h-10 w-64 mb-4" />
-                        <Skeleton className="h-32 rounded-lg mb-6" />
-                        <Skeleton className="h-16 rounded-lg" />
-                    </>
+                    <div className="space-y-6">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-32 rounded-2xl" />
+                        <Skeleton className="h-48 rounded-2xl" />
+                        <Skeleton className="h-40 rounded-2xl" />
+                    </div>
                 ) : assignment ? (
                     <>
-                        <h1 className="text-3xl font-bold text-indigo-900">
-                            {assignment.courseCode} - {assignment.courseName}
-                        </h1>
-                        <h2 className="text-xl font-semibold text-indigo-800 mb-2">
-                            {assignment.title}
-                        </h2>
+                        {/* Header Section */}
+                        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg">
+                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                                <div className="flex-1">
+                                    <Badge className="bg-white/20 text-white border-none mb-4">
+                                        {assignment.courseCode}
+                                    </Badge>
+                                    <h1 className="text-3xl font-bold mb-2">{assignment.title}</h1>
+                                    <p className="text-indigo-100 text-lg opacity-90">
+                                        {assignment.courseName}
+                                    </p>
+                                </div>
+                                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 min-w-48">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold mb-1">{assignment.maxScore}</div>
+                                        <div className="text-indigo-100 text-sm">Maximum Points</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <p className="text-gray-600 mb-4">{assignment.description}</p>
+                        {/* Main Content Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Left Column - Assignment Details */}
+                            <div className="lg:col-span-2 space-y-8">
+                                {/* Assignment Information */}
+                                <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                    <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                                        <FileText className="w-5 h-5 text-blue-600" />
+                                        Assignment Details
+                                    </h2>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-sm font-medium text-gray-500">Due Date</label>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4 text-gray-400" />
+                                                    <span className="font-semibold text-gray-900">
+                                                        {new Date(assignment.dueDate).toLocaleDateString()} at {new Date(assignment.dueDate).toLocaleTimeString()}
+                                                    </span>
+                                                </div>
+                                                {assignment.status === "pending" && (
+                                                    <span className={`text-sm font-medium ${
+                                                        daysUntilDue < 0 
+                                                            ? "text-red-600"
+                                                            : daysUntilDue <= 2
+                                                            ? "text-amber-600"
+                                                            : "text-green-600"
+                                                    }`}>
+                                                        {daysUntilDue < 0 
+                                                            ? `${Math.abs(daysUntilDue)} days overdue`
+                                                            : `${daysUntilDue} days remaining`
+                                                        }
+                                                    </span>
+                                                )}
+                                            </div>
+                                            
+                                            <div className="space-y-1">
+                                                <label className="text-sm font-medium text-gray-500">Status</label>
+                                                <StatusBadge status={assignment.status} />
+                                            </div>
+                                        </div>
 
-                        <p className="mb-2">
-                            Due Date:{" "}
-                            <time dateTime={assignment.dueDate} className="font-semibold">
-                                {new Date(assignment.dueDate).toLocaleString()}
-                            </time>{" "}
-                            {statusBadge(assignment.status)}
-                        </p>
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-gray-500">Description</label>
+                                            <p className="text-gray-700 leading-relaxed">{assignment.description}</p>
+                                        </div>
 
-                        {assignment.studentSubmission ? (
-                            <div className="bg-green-50 border border-green-200 p-4 rounded space-y-2">
-                                <p>
-                                    <strong>Your Submission:</strong>{" "}
-                                    {assignment.studentSubmission.fileName}
-                                </p>
-                                <p>
-                                    Submitted at:{" "}
-                                    {new Date(
-                                        assignment.studentSubmission.submittedAt
-                                    ).toLocaleString()}
-                                </p>
-
-                                {assignment.studentSubmission.score !== undefined ? (
-                                    <>
-                                        <p>
-                                            <strong>Score:</strong> {assignment.studentSubmission.score} /{" "}
-                                            {assignment.maxScore}
-                                        </p>
-                                        {assignment.teacherFeedback && (
-                                            <p className="italic text-gray-700">
-                                                Teacher Feedback: {assignment.teacherFeedback}
-                                            </p>
+                                        {assignment.instructions && (
+                                            <div className="space-y-1">
+                                                <label className="text-sm font-medium text-gray-500">Instructions</label>
+                                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                                    <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                                                        {assignment.instructions}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         )}
-                                    </>
+                                    </div>
+                                </section>
+
+                                {/* Submission Section */}
+                                {assignment.studentSubmission ? (
+                                    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                            Your Submission
+                                        </h2>
+                                        
+                                        <div className="bg-green-50 border border-green-200 rounded-xl p-6 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="w-8 h-8 text-green-600" />
+                                                    <div>
+                                                        <h3 className="font-semibold text-gray-900">
+                                                            {assignment.studentSubmission.fileName}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600">
+                                                            Submitted on {new Date(assignment.studentSubmission.submittedAt).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button className="flex items-center gap-2 px-3 py-2 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200">
+                                                    <Download className="w-4 h-4" />
+                                                    Download
+                                                </button>
+                                            </div>
+
+                                            {assignment.studentSubmission.score !== undefined ? (
+                                                <div className="bg-white rounded-lg p-4 border border-green-300">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                                                            <Award className="w-4 h-4 text-green-600" />
+                                                            Grading Results
+                                                        </h4>
+                                                        <Badge className="bg-green-100 text-green-800 border-green-200 text-lg font-bold">
+                                                            {assignment.studentSubmission.score} / {assignment.maxScore}
+                                                        </Badge>
+                                                    </div>
+                                                    {assignment.teacherFeedback && (
+                                                        <div>
+                                                            <label className="text-sm font-medium text-gray-500 mb-2 block">
+                                                                Teacher Feedback
+                                                            </label>
+                                                            <p className="text-gray-700 italic bg-gray-50 p-3 rounded border border-gray-200">
+                                                                {assignment.teacherFeedback}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                                    <div className="flex items-center gap-2 text-amber-800">
+                                                        <Clock className="w-4 h-4" />
+                                                        <span className="font-medium">Awaiting teacher feedback and grading</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </section>
                                 ) : (
-                                    <p className="italic text-yellow-800">Awaiting grading...</p>
+                                    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 mb-6">
+                                            <Upload className="w-5 h-5 text-amber-600" />
+                                            Submit Assignment
+                                        </h2>
+                                        
+                                        <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
+                                            isUrgent ? "border-amber-300 bg-amber-50" : "border-gray-300 bg-gray-50"
+                                        }`}>
+                                            <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                                Upload Your Submission
+                                            </h3>
+                                            <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                                                Drag and drop your file here, or click to browse
+                                            </p>
+                                            
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept=".pdf,.doc,.docx,.zip,.rar,.txt"
+                                                onChange={handleFileChange}
+                                                disabled={uploading}
+                                                className="hidden"
+                                            />
+                                            
+                                            <button
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={uploading}
+                                                className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Choose File
+                                            </button>
+                                            
+                                            {selectedFile && (
+                                                <div className="mt-4 p-3 bg-white border border-green-200 rounded-lg">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="w-4 h-4 text-green-600" />
+                                                            <span className="font-medium text-gray-900">{selectedFile.name}</span>
+                                                        </div>
+                                                        <span className="text-sm text-gray-500">
+                                                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4 text-sm text-gray-500">
+                                                Allowed formats: PDF, DOC, DOCX, ZIP, RAR, TXT (Max 50MB)
+                                            </div>
+
+                                            {submitError && (
+                                                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                    <p className="text-red-700 text-sm">{submitError}</p>
+                                                </div>
+                                            )}
+
+                                            {submitSuccess && (
+                                                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                    <p className="text-green-700 text-sm">{submitSuccess}</p>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={uploading || !selectedFile}
+                                                className={`mt-6 w-full py-3 rounded-lg font-medium transition-all duration-200 ${
+                                                    uploading || !selectedFile
+                                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                        : "bg-green-600 text-white hover:bg-green-700"
+                                                }`}
+                                            >
+                                                {uploading ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                        Submitting...
+                                                    </div>
+                                                ) : (
+                                                    "Submit Assignment"
+                                                )}
+                                            </button>
+                                        </div>
+                                    </section>
                                 )}
                             </div>
-                        ) : (
-                            <>
-                                <label
-                                    htmlFor="file-upload"
-                                    className="block mb-2 font-semibold cursor-pointer"
-                                >
-                                    <div
-                                        tabIndex={0}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ")
-                                                fileInputRef.current?.click();
-                                        }}
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded cursor-pointer hover:bg-indigo-700 transition select-none"
-                                        aria-describedby="fileHelp"
-                                    >
-                                        <Upload size={20} />
-                                        Choose File to Upload
+
+                            {/* Right Column - Resources & Info */}
+                            <div className="space-y-8">
+                                {/* Assignment Resources */}
+                                {assignment.attachments && assignment.attachments.length > 0 && (
+                                    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                        <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                                            <Download className="w-5 h-5 text-blue-600" />
+                                            Assignment Resources
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {assignment.attachments.map((attachment, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+                                                >
+                                                    <FileText className="w-4 h-4 text-blue-500" />
+                                                    <span className="font-medium text-gray-900 text-sm flex-1">
+                                                        {attachment.name}
+                                                    </span>
+                                                    <Download className="w-4 h-4 text-gray-400" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* Quick Info */}
+                                <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                                    <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                                        <User className="w-5 h-5 text-purple-600" />
+                                        Submission Guidelines
+                                    </h3>
+                                    <div className="space-y-3 text-sm text-gray-600">
+                                        <div className="flex items-start gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                            <span>Ensure your file is properly named</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                            <span>Check file size (max 50MB)</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                            <span>Submit before the deadline</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                            <span>You cannot re-upload after submission</span>
+                                        </div>
                                     </div>
-                                </label>
-                                <input
-                                    ref={fileInputRef}
-                                    id="file-upload"
-                                    type="file"
-                                    accept=".pdf,.doc,.docx,.zip,.rar,.txt"
-                                    onChange={handleFileChange}
-                                    disabled={uploading}
-                                    className="hidden"
-                                />
-                                {selectedFile && (
-                                    <p className="mt-2 text-gray-700">Selected file: {selectedFile.name}</p>
-                                )}
-
-                                <div id="fileHelp" className="text-sm text-gray-600 mb-4">
-                                    Allowed formats: PDF, DOC, DOCX, ZIP, RAR, TXT
-                                </div>
-
-                                {submitError && (
-                                    <p className="text-red-600 mb-2" role="alert">
-                                        {submitError}
-                                    </p>
-                                )}
-
-                                {submitSuccess && (
-                                    <p className="text-green-600 mb-2" role="status">
-                                        {submitSuccess}
-                                    </p>
-                                )}
-
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={uploading || !selectedFile}
-                                    className={`px-6 py-2 rounded text-white transition ${uploading || !selectedFile
-                                            ? "bg-indigo-300 cursor-not-allowed"
-                                            : "bg-indigo-600 hover:bg-indigo-700"
-                                        }`}
-                                    aria-label="Submit assignment"
-                                >
-                                    {uploading ? "Submitting..." : "Submit Assignment"}
-                                </button>
-                            </>
-                        )}
+                                </section>
+                            </div>
+                        </div>
                     </>
                 ) : null}
-            </section>
+            </div>
         </DashboardLayout>
     );
 }

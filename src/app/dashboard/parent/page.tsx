@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProfileHeader from "@/components/parent/ProfileHeader";
-import Notifications from "@/components/parent/Notifications";
-import QuickLinks from "@/components/parent/QuickLinks";
-import DashboardSkeleton from "@/components/parent/DashboardSkeleton";
-import { FiFileText, FiMessageCircle, FiEye } from "react-icons/fi";
+import DashboardLayout from "@/components/parent/DashboardLayout";
+import { FiFileText, FiMessageCircle, FiTrendingUp, FiCalendar, FiDollarSign } from "react-icons/fi";
 import AttendanceTrendsChart from "@/components/parent/AttendanceChart";
 import GpaTrendsChart from "@/components/parent/GpaTrendsChart";
 import UpcomingEvents from "@/components/parent/UpcomingEvents";
@@ -51,8 +48,6 @@ export default function ParentDashboard() {
     { semester: "Spring 2025", "Ayaan Omer": 3.8, "Layla Omer": 3.6 },
     { semester: "Fall 2025", "Ayaan Omer": 3.9, "Layla Omer": 3.7 },
   ];
-
-  const childrenNames = children.map((c) => c.name);
 
   const attendanceData = [
     { semester: "Fall 2024", "Ayaan Omer": 95, "Layla Omer": 88 },
@@ -173,9 +168,22 @@ export default function ParentDashboard() {
     }, 2000);
   }, []);
 
+  // Calculate summary statistics
+  const totalChildren = children.length;
+  const averageGPA = children.reduce((acc, child) => acc + child.gpa, 0) / totalChildren;
+  const averageAttendance = children.reduce((acc, child) => acc + child.attendancePercent, 0) / totalChildren;
+  const totalReports = children.reduce((acc, child) => acc + child.reportsAvailable, 0);
+
+  if (loading) {
+    return (
+      <DashboardLayout user={user} loading={true}>
+        <div></div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Parent Dashboard</h1>
+    <DashboardLayout user={user} loading={false}>
       {isPending && (
         <div
           aria-live="assertive"
@@ -204,223 +212,276 @@ export default function ParentDashboard() {
           </svg>
         </div>
       )}
-      {loading ? (
-        <DashboardSkeleton />
-      ) : children.length === 0 ? (
-        <p className="text-center text-gray-700 mt-20 text-xl">No children data found.</p>
+      
+      {children.length === 0 ? (
+        <div className="text-center py-20">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-sm border border-gray-200/60">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTrendingUp className="text-2xl text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Children Found</h3>
+            <p className="text-gray-600">Please contact the school administration to add your children to the system.</p>
+          </div>
+        </div>
       ) : (
-        <>
-          <ProfileHeader user={user} />
-
-          {/* QuickLinks top right, horizontal layout */}
-          <div className=" mt-4">
-            <QuickLinks />
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Children Cards */}
-            <section
-              className="col-span-2"
-              aria-label="Children cards with academic details and actions"
-            >
-              <h2 className="text-xl font-semibold mb-4 text-indigo-900">Your Children</h2>
-              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
-                {children.map((child) => (
-                  <article
-                    key={child.id}
-                    tabIndex={0}
-                    onClick={() => {
-                      startTransition(() => {
-                        router.push(`/dashboard/parent/child/${child.id}`);
-                      });
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        startTransition(() => {
-                          router.push(`/dashboard/parent/child/${child.id}`);
-                        });
-                      }
-                    }}
-                    aria-label={`${child.name}, ${child.grade}, GPA ${child.gpa.toFixed(
-                      2
-                    )}, attendance ${child.attendancePercent} percent, status ${child.status}`}
-                    className="bg-white border border-indigo-300 rounded-lg p-5 shadow-sm
-                    flex flex-col justify-between hover:shadow-lg focus:shadow-lg
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 transition cursor-pointer"
-                  >
-                    <header>
-                      <h3 className="text-2xl font-bold text-indigo-900 mb-1">{child.name}</h3>
-                      <p className="text-indigo-700 font-semibold">{child.grade}</p>
-                    </header>
-
-                    <section className="mt-4 flex flex-wrap gap-4 text-gray-700 text-sm">
-                      <div>
-                        <span className="font-semibold">GPA:</span> {child.gpa.toFixed(2)}
-                      </div>
-                      <div>
-                        <span className="font-semibold">Attendance:</span> {child.attendancePercent}%
-                      </div>
-                      <div>
-                        <span className="font-semibold">Reports:</span> {child.reportsAvailable}
-                      </div>
-                      <div>
-                        <StatusBadge status={child.status} />
-                      </div>
-                    </section>
-
-                    <footer className="mt-6 flex gap-3 flex-wrap">
-                      <button
-                        type="button"
-                        className="flex items-center gap-2 bg-indigo-700 text-white px-4 py-2 rounded hover:bg-indigo-800 transition"
-                        aria-label={`View reports for ${child.name}`}
-                      >
-                        <FiFileText />
-                        View Reports
-                      </button>
-                      <button
-                        type="button"
-                        className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-                        aria-label={`Message teacher regarding ${child.name}`}
-                      >
-                        <FiMessageCircle />
-                        Message Teacher
-                      </button>
-                      <button
-                        type="button"
-                        className="flex items-center gap-2 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
-                        aria-label={`View profile for ${child.name}`}
-                      >
-                        <FiEye />
-                        View Profile
-                      </button>
-                    </footer>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            {/* Notifications */}
-            <section
-              className="bg-white rounded-lg shadow p-4 max-h-[600px] overflow-auto"
-              aria-label="Your notifications"
-            >
-              <h2 className="text-xl font-semibold mb-4 text-indigo-900">Notifications</h2>
-              {notifications.length === 0 ? (
-                <p className="text-gray-600 italic">No new notifications.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {notifications.map(({ id, message, type, date }) => (
-                    <li
-                      key={id}
-                      className={`p-3 rounded-md border-l-4 ${type === "info"
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                        : type === "warning"
-                          ? "border-yellow-400 bg-yellow-50 text-yellow-800"
-                          : "border-red-500 bg-red-50 text-red-700"
-                        } focus:outline-none focus:ring-2 focus:ring-offset-1 ${type === "info"
-                          ? "focus:ring-indigo-500"
-                          : type === "warning"
-                            ? "focus:ring-yellow-400"
-                            : "focus:ring-red-500"
-                        }`}
-                      tabIndex={0}
-                      aria-label={`${message}, notification type ${type}`}
-                    >
-                      <p>{message}</p>
-                      <time
-                        dateTime={date.toISOString()}
-                        className="block text-xs text-gray-500 mt-1"
-                        aria-label={`Date: ${date.toLocaleDateString()} Time: ${date.toLocaleTimeString()}`}
-                      >
-                        {date.toLocaleDateString()}{" "}
-                        {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </time>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </div>
-
-          {/* Academic Summary Table */}
-          <section
-            className="bg-white rounded-lg shadow mt-10 p-6 overflow-x-auto"
-            aria-label="Academic summary table"
-          >
-            <h2 className="text-2xl font-bold mb-6 text-indigo-900">Academic Summary</h2>
-            <table className="w-full table-auto border-collapse border border-indigo-300 rounded-md text-left">
-              <thead className="bg-indigo-100">
-                <tr>
-                  <th className="border border-indigo-300 px-4 py-2">Child</th>
-                  <th className="border border-indigo-300 px-4 py-2">Grade</th>
-                  <th className="border border-indigo-300 px-4 py-2">GPA</th>
-                  <th className="border border-indigo-300 px-4 py-2">Attendance %</th>
-                  <th className="border border-indigo-300 px-4 py-2">Reports Available</th>
-                  <th className="border border-indigo-300 px-4 py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {children.map((child) => (
-                  <tr
-                    key={child.id}
-                    tabIndex={0}
-                    aria-label={`${child.name} academic summary`}
-                    className="hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <td className="border border-indigo-300 px-4 py-2 font-semibold text-indigo-800">
-                      {child.name}
-                    </td>
-                    <td className="border border-indigo-300 px-4 py-2">{child.grade}</td>
-                    <td className="border border-indigo-300 px-4 py-2">{child.gpa.toFixed(2)}</td>
-                    <td className="border border-indigo-300 px-4 py-2">{child.attendancePercent}%</td>
-                    <td className="border border-indigo-300 px-4 py-2">{child.reportsAvailable}</td>
-                    <td className="border border-indigo-300 px-4 py-2">
-                      <StatusBadge status={child.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-          <div className="p-6 max-w-7xl mx-auto min-h-screen">
-            {/* Container for the two charts side by side */}
-            <div className="flex flex-col md:flex-row gap-6 mb-8">
-              <div className="flex-1 bg-white rounded-lg shadow p-4">
-                <GpaTrendsChart data={gpaData} childrenNames={childrenNames} />
-              </div>
-
-              <div className="flex-1 bg-white rounded-lg shadow p-4">
-                <AttendanceTrendsChart data={attendanceData} childrenNames={childrenNames} />
+        <div className="space-y-8">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-gray-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Students</p>
+                  <p className="text-3xl font-bold text-gray-900">{totalChildren}</p>
+                </div>
+                <div className="p-3 bg-indigo-100 rounded-xl">
+                  <FiTrendingUp className="h-6 w-6 text-indigo-600" />
+                </div>
               </div>
             </div>
 
-            <UpcomingEvents events={events} />
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-gray-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg GPA</p>
+                  <p className="text-3xl font-bold text-gray-900">{averageGPA.toFixed(1)}</p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <FiTrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
 
-            <PaymentHistory payments={payments} />
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-gray-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg Attendance</p>
+                  <p className="text-3xl font-bold text-gray-900">{averageAttendance.toFixed(1)}%</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <FiCalendar className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-sm border border-gray-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Reports</p>
+                  <p className="text-3xl font-bold text-gray-900">{totalReports}</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <FiFileText className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
           </div>
-        </>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            {/* Left Column - Children Cards & Academic Summary */}
+            <div className="xl:col-span-2 space-y-8">
+              {/* Children Cards */}
+              <section className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">Your Children</h2>
+                  <span className="text-sm text-gray-500">{totalChildren} student{totalChildren !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  {children.map((child) => (
+                    <article
+                      key={child.id}
+                      tabIndex={0}
+                      onClick={() => {
+                        startTransition(() => {
+                          router.push(`/dashboard/parent/child/${child.id}`);
+                        });
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          startTransition(() => {
+                            router.push(`/dashboard/parent/child/${child.id}`);
+                          });
+                        }
+                      }}
+                      className="bg-gradient-to-br from-white to-gray-50/80 border border-gray-200/60 rounded-xl p-6 
+                      hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 
+                      transition-all duration-300 cursor-pointer hover:scale-[1.02]"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">{child.name}</h3>
+                          <p className="text-gray-600 font-medium">{child.grade}</p>
+                        </div>
+                        <StatusBadge status={child.status} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                        <div className="text-center p-3 bg-blue-50 rounded-lg">
+                          <div className="text-lg font-bold text-blue-600">{child.gpa.toFixed(1)}</div>
+                          <div className="text-blue-600 text-xs">GPA</div>
+                        </div>
+                        <div className="text-center p-3 bg-green-50 rounded-lg">
+                          <div className="text-lg font-bold text-green-600">{child.attendancePercent}%</div>
+                          <div className="text-green-600 text-xs">Attendance</div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white px-3 py-2 rounded-lg 
+                          hover:bg-indigo-700 transition-colors text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle view reports
+                          }}
+                        >
+                          <FiFileText className="text-sm" />
+                          Reports
+                        </button>
+                        <button
+                          type="button"
+                          className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg 
+                          hover:bg-green-700 transition-colors text-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Handle message teacher
+                          }}
+                        >
+                          <FiMessageCircle className="text-sm" />
+                          Message
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              {/* Charts Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
+                  <GpaTrendsChart data={gpaData} childrenNames={children.map(c => c.name)} />
+                </div>
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
+                  <AttendanceTrendsChart data={attendanceData} childrenNames={children.map(c => c.name)} />
+                </div>
+              </div>
+
+              {/* Academic Summary */}
+              <section className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
+                <h2 className="text-xl font-bold mb-6 text-gray-900">Academic Summary</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Child</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Grade</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">GPA</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Attendance</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Reports</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {children.map((child) => (
+                        <tr key={child.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 px-4 font-medium text-gray-900">{child.name}</td>
+                          <td className="py-3 px-4 text-gray-600">{child.grade}</td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-gray-900">{child.gpa.toFixed(1)}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-gray-900">{child.attendancePercent}%</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-gray-900">{child.reportsAvailable}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <StatusBadge status={child.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            {/* Right Column - Notifications, Events, Payments */}
+            <div className="space-y-8">
+              {/* Notifications */}
+              <section className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/60 p-6">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">Notifications</h2>
+                {notifications.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No new notifications</p>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.map(({ id, message, type, date }) => (
+                      <div
+                        key={id}
+                        className={`p-4 rounded-xl border-l-4 ${
+                          type === "info"
+                            ? "border-blue-500 bg-blue-50/50"
+                            : type === "warning"
+                            ? "border-yellow-500 bg-yellow-50/50"
+                            : "border-red-500 bg-red-50/50"
+                        }`}
+                      >
+                        <p className="text-sm text-gray-700">{message}</p>
+                        <time className="text-xs text-gray-500 mt-2 block">
+                          {date.toLocaleDateString()} at {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </time>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Upcoming Events */}
+              <UpcomingEvents events={events} />
+
+              {/* Payment History */}
+              <PaymentHistory payments={payments} />
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
 
 function StatusBadge({ status }: { status: "Good" | "Warning" | "At Risk" }) {
-  let className = "inline-block px-2 py-0.5 rounded-full text-xs font-semibold select-none ";
-  let tooltipText = "";
+  const getStatusConfig = () => {
+    switch (status) {
+      case "Good":
+        return {
+          className: "bg-green-100 text-green-800 border-green-200",
+          tooltip: "Good standing: Keep up the great work!",
+          icon: "✅"
+        };
+      case "Warning":
+        return {
+          className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+          tooltip: "Warning: Some areas need attention.",
+          icon: "⚠️"
+        };
+      case "At Risk":
+        return {
+          className: "bg-red-100 text-red-800 border-red-200",
+          tooltip: "At Risk: Immediate action recommended.",
+          icon: "🔴"
+        };
+    }
+  };
 
-  if (status === "Good") {
-    className += "bg-green-100 text-green-800";
-    tooltipText = "Good standing: Keep up the great work!";
-  } else if (status === "Warning") {
-    className += "bg-yellow-100 text-yellow-800";
-    tooltipText = "Warning: Some areas need attention.";
-  } else {
-    className += "bg-red-100 text-red-800";
-    tooltipText = "At Risk: Immediate action recommended.";
-  }
+  const config = getStatusConfig();
 
   return (
-    <span className={className} title={tooltipText} tabIndex={0} aria-label={tooltipText}>
+    <span 
+      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${config.className}`}
+      title={config.tooltip}
+    >
+      <span>{config.icon}</span>
       {status}
     </span>
   );
