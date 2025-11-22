@@ -19,12 +19,19 @@ interface Props {
   children: React.ReactNode;
 }
 
+// REMOVED: export const metadata from here
+
 export default function ClientLayoutSwitcher({ children }: Props) {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [bannerOpen, setBannerOpen] = useState(true);
+  const [isFooterExpanded, setIsFooterExpanded] = useState(false);
 
   const closeBanner = () => setBannerOpen(false);
+
+  const handleFooterExpand = (expanded: boolean) => {
+    setIsFooterExpanded(expanded);
+  };
 
   useEffect(() => {
     const userJson = localStorage.getItem("user");
@@ -53,18 +60,35 @@ export default function ClientLayoutSwitcher({ children }: Props) {
   // Use specific layout if exists
   if (role && layouts[role]) {
     const Layout = layouts[role];
-    return <Layout>{children}</Layout>;
+    return (
+      <>
+        <div className={`min-h-screen flex flex-col ${isFooterExpanded ? 'overflow-hidden' : ''}`}>
+          <Layout>{children}</Layout>
+          <FooterPoweredBy onExpandChange={handleFooterExpand} />
+        </div>
+      </>
+    );
   }
 
   // Default layout for other roles
   return (
     <>
-      <GradientBanner onClose={closeBanner} />
-      <Toaster richColors />
-      <Navbar bannerOpen={bannerOpen} />
-      <main className="min-h-screen">{children}</main>
-      <Footer />
-      <FooterPoweredBy />
+      <div className={`min-h-screen flex flex-col ${isFooterExpanded ? 'overflow-hidden' : ''}`}>
+        <GradientBanner onClose={closeBanner} />
+        <Toaster richColors />
+        <Navbar bannerOpen={bannerOpen} />
+        
+        {/* Main content area */}
+        <main className="flex-1">
+          {children}
+        </main>
+        
+        {/* Regular Footer */}
+        <Footer />
+        
+        {/* Expandable Footer */}
+        <FooterPoweredBy onExpandChange={handleFooterExpand} />
+      </div>
     </>
   );
 }

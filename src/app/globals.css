@@ -112,6 +112,29 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Add to your global CSS */
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite;
+}
+
+.fixed.inset-0 {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Remove any potential margin/padding issues */
+body {
+    margin: 0;
+    padding: 0;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
